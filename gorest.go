@@ -27,12 +27,13 @@ package gorest
 
 import (
 	"encoding/json"
-	"log"
+	"github.com/rmullinnix/logger"
 	"net/http"
 	"net/url"
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type GoRestService interface {
@@ -194,17 +195,32 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	url_, err := url.QueryUnescape(r.URL.RequestURI())
 
+	message := "url: " + url_ + " method: " + r.Method + " "
+
+	defer logger.Elapsed(time.Now(), message)
+
+	authkey := r.Header.Get("Authorization")
+	if len(authkey) > 0 {
+		if strings.Contains(authkey, "Bearer") {
+			w.Header().Set("Authorization", authkey)
+		} else {
+			authkey = ""
+		}
+	}
+
 	defer func() {
 		if rec := recover(); rec != nil {
-			log.Println("Internal Server Error: Could not serve page: ", r.Method, url_)
-			log.Println(rec)
-			log.Printf("%s", debug.Stack())
+			logger.Error.Println("Internal Server Error: Could not serve page: ", r.Method, url_)
+			logger.Error.Println(rec)
+			logger.Error.Printf("%s", debug.Stack())
+			logger.SetResponseCode(http.StatusInternalServerError)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}()
 
 	if err != nil {
-		log.Println("Could not serve page: ", r.Method, r.URL.RequestURI(), "Error:", err)
+		logger.Warning.Println("Could not serve page: ", r.Method, r.URL.RequestURI(), "Error:", err)
+		logger.SetResponseCode(400)
 		w.WriteHeader(400)
 		w.Write([]byte("Client sent bad request."))
 		return
@@ -217,15 +233,16 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx.request = r
 		ctx.args = args
 		ctx.queryArgs = queryArgs
-		ctx.xsrftoken = strings.TrimLeft(r.Header.Get("Authorization"), "Bearer ")
+		ctx.xsrftoken = strings.TrimPrefix(authkey, "Bearer ")
 
-		data, state := prepareServe(ctx, ep)
+		header, state := prepareServe(ctx, ep)
 
 		if state.httpCode == http.StatusOK {
 			switch ep.requestMethod {
 			case POST, PUT, DELETE, HEAD, OPTIONS:
 				{
 					if ctx.responseCode == 0 {
+						logger.SetResponseCode(getDefaultResponseCode(ep.requestMethod))
 						w.WriteHeader(getDefaultResponseCode(ep.requestMethod))
 					} else {
 						if !ctx.dataHasBeenWritten {
@@ -239,6 +256,7 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						if !ctx.responseMimeSet {
 							w.Header().Set("Content-Type", _manager().getType(ep.parentTypeName).producesMime)
 						}
+						logger.SetResponseCode(getDefaultResponseCode(ep.requestMethod))
 						w.WriteHeader(getDefaultResponseCode(ep.requestMethod))
 					} else {
 						if !ctx.dataHasBeenWritten {
@@ -250,29 +268,35 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					}
 
 					if !ctx.overide {
-						w.Write(data)
+						w.Write(header)
 					}
 
 				}
 			}
 
 		} else {
-			log.Println("Problem with request. Error:", r.Method, state.httpCode, state.reason, "; Request: ", r.URL.RequestURI())
+			logger.Error.Println("Problem with request. Error:", r.Method, state.httpCode, state.reason, "; Request: ", r.URL.RequestURI())
+			if len(header) > 0 {
+				items := strings.Split(string(header), ": ")
+				w.Header().Set(items[0], items[1])
+			}
+			logger.SetResponseCode(state.httpCode)
 			w.WriteHeader(state.httpCode)
 			w.Write([]byte(state.reason))
 		}
 	} else if url_ == _manager().root {
 		epList := getEndPointList()
 		data, _ := json.Marshal(epList)
+		logger.SetResponseCode(http.StatusFound)
 		w.WriteHeader(http.StatusFound)
 		w.Write(data)
 
 	} else {
-		log.Println("Could not serve page, path not found: ", r.Method, url_)
+		logger.Warning.Println("Could not serve page, path not found: ", r.Method, url_)
+		logger.SetResponseCode(http.StatusNotFound)
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("The resource in the requested path could not be found."))
 	}
-
 }
 
 func (man *manager) getType(name string) serviceMetaData {
@@ -295,12 +319,13 @@ func (man *manager) addEndPoint(ep endPointStruct) {
 
 //Registeres the function to be used for handling all requests directed to gorest.
 func HandleFunc(w http.ResponseWriter, r *http.Request) {
-	log.Println("Serving URL : ", r.Method, r.URL.RequestURI())
+	logger.Info.Println("Serving URL : ", r.Method, r.URL.RequestURI())
 	defer func() {
 		if rec := recover(); rec != nil {
-			log.Println("Internal Server Error: Could not serve page: ", r.Method, r.RequestURI)
-			log.Println(rec)
-			log.Printf("%s", debug.Stack())
+			logger.Error.Println("Internal Server Error: Could not serve page: ", r.Method, r.RequestURI)
+			logger.Error.Println(rec)
+			logger.Error.Printf("%s", debug.Stack())
+			logger.SetResponseCode(http.StatusInternalServerError)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}()

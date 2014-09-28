@@ -26,6 +26,7 @@
 package gorest
 
 import (
+	"github.com/rmullinnix/logger"
 	"net/http"
 	"strconv"
 	"time"
@@ -134,6 +135,7 @@ func (this *ResponseBuilder) writer() http.ResponseWriter {
 //Set the http code to be sent with the response, to the client.
 func (this *ResponseBuilder) SetResponseCode(code int) *ResponseBuilder {
 	this.ctx.responseCode = code
+	logger.SetResponseCode(code)
 	return this
 }
 

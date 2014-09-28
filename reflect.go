@@ -287,12 +287,12 @@ func prepareServe(context *Context, ep endPointStruct) ([]byte, restStatus) {
 	//Check Authorization
 
 	if servMeta.realm != "" {
-		inRealm, inAccess, sess := GetAuthorizer(servMeta.realm)(context.xsrftoken, servMeta.realm, context.request.Method)
-		context.relSessionData = sess
-		if inRealm && inAccess {
+		http_code, ret_msg, header := GetAuthorizer(servMeta.realm)(context.xsrftoken, servMeta.realm, context.request.Method)
+		// context.relSessionData = sess
+		if http_code == 200 {
 				goto Run
 		}
-		return nil, restStatus{403, "Request denied, please ensure correct authentication and authorization."}
+		return []byte(header), restStatus{http_code, ret_msg}
 	}
 
 Run:
