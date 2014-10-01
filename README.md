@@ -32,7 +32,7 @@ type State struct {
 
 //Service Definition
 type ReferenceService struct {
-	gorest.RestService `root:"/galaga/dectest" consumes:"application/json" produces:"application/vnd.siren+json"`
+	gorest.RestService `root:"/example/dectest" consumes:"application/json" produces:"application/vnd.siren+json"`
 	getLookup    gorest.EndPoint `method:"GET"  path:"/lookup?{name:string}" output:"State"`
 	getString    gorest.EndPoint `method:"GET"  path:"/string?{name:string}" output:"string"`
 	getArray     gorest.EndPoint `method:"GET"  path:"/array?{name:string}" output:"[]State"`
