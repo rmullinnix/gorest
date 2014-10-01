@@ -8,7 +8,7 @@ copy and modification of gorest libary from code.google.com/p/gorest
 * logging - put in a different log framework - adding logging of request/response with elapsed time (for integration with logstash)
 * hypermedia - currently adding hypermedia decorators (siren in dev) to support mime type of application/vnd.siren+json
 
-### Other things conneced to the framework
+### Other things connected to the framework
 * using Consul for service registry and k/v store
 * using HAPorxy with Consul-HAProxy for dynamic service registration / load balancing / friendly URL addressing
 * have hooked up logstash to logfiles produced from framework, dump in elastic search, and front-end with Kibana
