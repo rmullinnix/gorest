@@ -106,6 +106,7 @@ func getEntityList(val reflect.Value) ([]Entity, string) {
 	return entList, className
 }
 
+// creates a new Siren Decorator 
 func NewSirenDecorator() *Decorator {
 	dec := Decorator{sirenDecorator}
 	return &dec

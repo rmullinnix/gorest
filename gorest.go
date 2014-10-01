@@ -111,12 +111,12 @@ func newManager() *manager {
 	return man
 }
 
-//Registeres a service on the rootpath.
+//Registers a service on the rootpath.
 //See example below:
 //
 //	package main
 //	import (
-// 	   "code.google.com/p/gorest"
+// 	   "github.com/rmullinnix/gorest"
 //	        "http"
 //	)
 //	func main() {
@@ -146,7 +146,7 @@ func RegisterService(h interface{}) {
 //
 //	package main
 //	import (
-//	    "code.google.com/p/gorest"
+//	    "github.com/rmullinnix/gorest"
 //	        "http"
 //	)
 //	func main() {

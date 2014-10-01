@@ -51,9 +51,3 @@ func GetHypermediaDecorator(mime string) (dec *Decorator) {
 	dec, _ = decorators[mime]
 	return
 }
-
-//This is the default and exmaple decorator that is used to add hypermedia links to the response body
-func DefaultDecorator(response interface{}, resource string, method string) (interface{}) {
-	return response
-}
-

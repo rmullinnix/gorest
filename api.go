@@ -107,9 +107,9 @@ type ResponseBuilder struct {
 	ctx *Context
 }
 
-//Returns the "xsrftoken" token associated with the current request and hence session.
-//This token is either passed vi a URL query parameter "xsrft=1234567" or via a cookie with the name "X-Xsrf-Cookie", 
-//all depending on how your Authoriser is set up.
+//Returns the Authorization token associated with the current request and hence session.
+//This token is passed via the Authorization Header - supports Authorization: Bearer <token>
+//The authorizer determines how the token is applied to securing requests
 func (this *ResponseBuilder) SessionToken() string {
 	return this.ctx.xsrftoken
 }
