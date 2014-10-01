@@ -1,4 +1,4 @@
-//Copyright 2011 Siyabonga Dlamini (siyabonga.dlamini@gmail.com). All rights reserved.
+//Copyright 2014  (rmullinnix@yahoo.com). All rights reserved.
 //
 //Redistribution and use in source and binary forms, with or without
 //modification, are permitted provided that the following conditions
@@ -26,35 +26,34 @@
 
 package gorest
 
+var decorators map[string]*Decorator
 
-var authorizers map[string]Authorizer
+//Signiture of functions to be used as Decorators
+type Decorator struct {
+	Decorate func(interface{}, string, string)(interface{})
+}
 
-//Signiture of functions to be used as Authorizers
-type Authorizer func(string, string, string)(int, string, string)
-
-//Registers an Authorizer for the specified realm.
-func RegisterRealmAuthorizer(realm string, auth Authorizer){
-	if authorizers == nil{
-		authorizers = make(map[string]Authorizer,0)
+//Registers an Hypermedia Decorator
+func RegisterHypermediaDecorator(mime string, dec *Decorator) {
+	if decorators == nil {
+		decorators = make(map[string]*Decorator, 0)
 	}
-	
-	if _,found := authorizers[realm]; !found{
-		authorizers[realm] = auth
+	if _, found := decorators[mime]; !found {
+		decorators[mime] = dec
 	}
 }
 
 //Returns the registred Authorizer for the specified realm.
-func GetAuthorizer(realm string)(a Authorizer){
-	if authorizers ==nil{
-		authorizers = make(map[string]Authorizer,0)
+func GetHypermediaDecorator(mime string) (dec *Decorator) {
+	if decorators == nil {
+		decorators = make(map[string]*Decorator, 0)
 	}
-	a,_ = authorizers[realm]
-	return 
+	dec, _ = decorators[mime]
+	return
 }
 
-//This is the default and exmaple authorizer that is used to authorize requests to endpints with no security realms.
-//It always allows access and returns nil for SessionData.
-func DefaultAuthorizer(token string, resource string, method string)(int, string, string) {
-	return 200, "", ""
+//This is the default and exmaple decorator that is used to add hypermedia links to the response body
+func DefaultDecorator(response interface{}, resource string, method string) (interface{}) {
+	return response
 }
 

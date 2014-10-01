@@ -110,10 +110,6 @@ func newManager() *manager {
 	man.endpoints = make(map[string]endPointStruct, 0)
 	return man
 }
-func init() {
-	RegisterMarshaller(Application_Json, NewJSONMarshaller())
-
-}
 
 //Registeres a service on the rootpath.
 //See example below:

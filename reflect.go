@@ -28,7 +28,7 @@ package gorest
 import (
 	"bytes"
 	"io"
-	"log"
+	"github.com/rmullinnix/logger"
 	"net/http"
 	"reflect"
 	"strings"
@@ -101,15 +101,15 @@ func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName stri
 
 		{ //Panic Checks
 			if !methFound {
-				log.Panic("Method name not found. " + panicMethNotFound(methFound, ep, t, f, methodName))
+				logger.Error.Panicln("Method name not found. " + panicMethNotFound(methFound, ep, t, f, methodName))
 			}
 			if !isLegalForRequestType(method.Type, ep) {
-				log.Panic("Parameter list not matching. " + panicMethNotFound(methFound, ep, t, f, methodName))
+				logger.Error.Panicln("Parameter list not matching. " + panicMethNotFound(methFound, ep, t, f, methodName))
 			}
 		}
 		ep.methodNumberInParent = methodNumberInParent
 		_manager().addEndPoint(ep)
-		log.Println("Registerd service:", t.Name(), " endpoint:", ep.requestMethod, ep.signiture)
+		logger.Info.Println("Registerd service:", t.Name(), " endpoint:", ep.requestMethod, ep.signiture)
 	}
 }
 
@@ -387,8 +387,15 @@ Run:
 		}
 
 		if len(ret) == 1 { //This is when we have just called a GET
+			// check for hypermedia decorator
+			dec := GetHypermediaDecorator(servMeta.producesMime)
+			hidec := ret[0].Interface()
+			if dec != nil {
+				hidec = dec.Decorate(hidec, ep.signiture, ep.requestMethod)
+			}
+
 			//At this stage we should be ready to write the response to client
-			if bytarr, err := InterfaceToBytes(ret[0].Interface(), servMeta.producesMime); err == nil {
+			if bytarr, err := InterfaceToBytes(hidec, servMeta.producesMime); err == nil {
 				return bytarr, restStatus{http.StatusOK, ""}
 			} else {
 				//This is an internal error with the registered marshaller not being able to marshal internal structs
@@ -401,7 +408,7 @@ Run:
 	}
 
 	//Just in case the whole civilization crashes and it falls thru to here. This shall never happen though... well tested
-	log.Panic("There was a problem with request handing. Probably a bug, please report.") //Add client data, and send support alert
+	logger.Error.Panicln("There was a problem with request handing. Probably a bug, please report.") //Add client data, and send support alert
 	return nil, restStatus{http.StatusInternalServerError, "GoRest: Internal server error."}
 }
 
