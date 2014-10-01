@@ -13,7 +13,7 @@ copy and modification of gorest libary from code.google.com/p/gorest
 * using HAPorxy with Consul-HAProxy for dynamic service registration / load balancing / friendly URL addressing
 * have hooked up logstash to logfiles produced from framework, dump in elastic search, and front-end with Kibana
 
-Example of Siren 
+Example with Siren 
 ```
 // test_Dec.go
 package main
