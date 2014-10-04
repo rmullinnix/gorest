@@ -27,42 +27,49 @@
 package gorest
 
 import (
-	"fmt"
 	"strings"
 	"reflect"
 	"unicode"
 )
 
 type Siren struct {
-	Class		string
-	Properties	interface{}
-	Entities	[]SEntity
-	Actions		[]SAction
-	Links		[]SLink
+	Class		string		`json:"class,omitempty"`
+	Title		string		`json:"title,omitempty"`
+	Properties	interface{}	`json:"properties"`
+	Entities	[]SEntity	`json:"entities,omitempty"`
+	Actions		[]SAction	`json:"actions,omitempty"`
+	Links		[]SLink		`json:"links"`
 }
 
 type SEntity struct {
-	Class		string
-	Rel		string
-	Properties	interface{}
-	Links		[]SLink
+	Class		string		`json:"class,omitempty"`
+	Rel		string		`json:"rel"`
+	Properties	interface{}	`json:"properties"`
+	Links		[]SLink		`json:"links,omitempty"`
 }
 
 type SAction struct {
-	Name		string
-	Class		string
-	Href		string
-	Method		string
+	Name		string		`json:"name"`
+	Class		string		`json:"class,omitempty"`
+	Method		string		`json:"method,omitempty"`
+	Href		string		`json:"href"`
+	Title		string		`json:"title,omitempty"`
+	Type		string		`json:"type,omitempty"`
 }
 
 type Field struct {
-	Name		string
-	Type		string
+	Name		string		`json:"name"`
+	Type		string		`json:"type"`
+	Value		string		`json:"value,omitempty"`
+	Title		string		`json:"title,omitempty"`
 }
 
 type SLink struct {
-	Rel		string
-	Href		string
+	Class		string		`json:"class,omitempty"`
+	Title		string		`json:"title,omitempty"`
+	Rel		string		`json:"rel"`
+	Href		string		`json:"href"`
+	Type		string		`json:"type,omitempty"`
 }
 
 // This takes the data destined for the http response body and adds hypermedia content
@@ -97,7 +104,7 @@ func sirenLinks(ent entity, keyval string) []SLink {
 	i := 0
 	
 	for _, e_lnk := range ent.links {
-		lnk := SLink{e_lnk.rel, e_lnk.href}
+		lnk := SLink{"", "", e_lnk.rel, e_lnk.href, ""}
 		if strings.Contains(lnk.Href, "{key}") {
 			lnk.Href = strings.Replace(lnk.Href, "{key}", keyval, 1)
 		}
@@ -112,7 +119,7 @@ func sirenActions(ent entity, keyval string) []SAction {
 	i := 0
 	
 	for _, e_act := range ent.actions {
-		act := SAction{e_act.name, e_act.class, e_act.href, e_act.method}
+		act := SAction{e_act.name, e_act.class, e_act.method, e_act.href, "", ""}
 		if strings.Contains(act.Href, "{key}") {
 			act.Href = strings.Replace(act.Href, "{key}", keyval, 1)
 		}
@@ -129,7 +136,6 @@ func stripSubentities(in reflect.Value, entmap map[string]entity) (map[string]in
 	typ := reflect.TypeOf(in.Interface())
 	for i := 0; i < typ.NumField(); i++ {
 		vItem := in.Field(i)
-		fmt.Println(vItem)
 		switch vItem.Kind() {
 			case reflect.Slice, reflect.Array, reflect.Map:
 				item := vItem.Index(0)
@@ -185,7 +191,7 @@ func getEntity(sub bool, vItem reflect.Value, entmap map[string]entity) SEntity 
 				continue
 			}
 
-			lnk := SLink{subent.links[j].rel, subent.links[j].href}
+			lnk := SLink{"", "", subent.links[j].rel, subent.links[j].href, ""}
 			if strings.Contains(lnk.Href, "{key}") {
 				keyval := vItem.FieldByName(subent.key)
 //				if !val.IsNil() {

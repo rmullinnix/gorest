@@ -64,6 +64,11 @@ type action struct {
 type Entity bool
 type Link bool
 type Action bool
+type Curie bool
+type Query bool
+type Error bool
+type Template bool
+type Data bool
 
 var entityInitialized	bool
 var entities 		map[string]entity
