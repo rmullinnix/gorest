@@ -391,7 +391,7 @@ Run:
 			dec := GetHypermediaDecorator(servMeta.producesMime)
 			hidec := ret[0].Interface()
 			if dec != nil {
-				hidec = dec.Decorate(hidec, ep.signiture, ep.requestMethod)
+				hidec = dec.Decorate(hidec, entities)
 			}
 
 			//At this stage we should be ready to write the response to client

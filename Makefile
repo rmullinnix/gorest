@@ -1,10 +1,11 @@
-include $(GOROOT)/src/Make.inc
-
-TARG=code.google.com/p/gorest
+DEP=github.com/rmullinnix/logger
+TARG=github.com/rmullinnix/gorest
 
 GOFILES=\
     doc.go\
 	api.go\
+	decorator.go\
+	siren.go\
 	gorest.go\
 	mime.go\
 	parse.go\
@@ -14,6 +15,10 @@ GOFILES=\
 	util.go\
 	sec.go\
 
+install:
+	go install $(DEP)
+	go install $(TARG)
 
+build:
+	go build $(TARG)
 
-include $(GOROOT)/src/Make.pkg

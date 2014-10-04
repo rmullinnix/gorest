@@ -117,9 +117,11 @@ func newManager() *manager {
 //	package main
 //	import (
 // 	   "github.com/rmullinnix/gorest"
+// 	   "github.com/rmullinnix/logger"
 //	        "http"
 //	)
 //	func main() {
+//	    logger.Init("info")
 //	    gorest.RegisterService(new(HelloService)) //Register our service
 //	    http.Handle("/",gorest.Handle())
 // 	   http.ListenAndServe(":8787",nil)
