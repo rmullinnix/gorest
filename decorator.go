@@ -34,6 +34,7 @@ import (
 
 var decorators map[string]*Decorator
 
+// siren - entity, hal - resource and embedded
 type entity struct {
 	class		string
 	title		string
@@ -42,16 +43,21 @@ type entity struct {
 	href		string
 	links		map[int]link
 	actions		map[int]action
+	curies		map[int]curie
 }
 
+// all hypermedia formats
 type link struct {
 	title		string
+	class		string
 	rel		string
 	href		string
 	typ		string
+	templated	bool
+	name		string
 }
 
-// leaving fields off for now
+// siren - actions (leaving fields off for now)
 type action struct {
 	name		string
 	method		string
@@ -61,14 +67,21 @@ type action struct {
 	typ		string
 }
 
-type Entity bool
-type Link bool
-type Action bool
-type Curie bool
-type Query bool
-type Error bool
-type Template bool
-type Data bool
+// hal - curie type, intended for documentation and URI prefix
+type curie struct {
+	name		string
+	href		string
+	templated	bool
+}
+
+type Entity bool		// all
+type Link bool			// all
+type Action bool		// siren
+type Curie bool			// hal
+type Query bool			// collection+json
+type Error bool			// collection+json
+type Template bool		// collection+json
+type Data bool			// collection+json
 
 var entityInitialized	bool
 var entities 		map[string]entity
@@ -118,9 +131,11 @@ func RegisterEntity(i_ent interface{}) {
 			ent := prepEntityData(reflect.StructTag(temp))
 			ent.links = make(map[int]link)
 			ent.actions = make(map[int]action)
+			ent.curies = make(map[int]curie)
 
 			linkcnt := 0
 			actioncnt := 0
+			curiecnt := 0
 			for i := 0; i < t.NumField(); i++ {
 				f := t.Field(i)
 				ftmp := strings.Join(strings.Fields(string(f.Tag)), " ")
@@ -132,6 +147,10 @@ func RegisterEntity(i_ent interface{}) {
 					act := prepActionData(f.Name, reflect.StructTag(ftmp))
 					ent.actions[actioncnt] = act
 					actioncnt++
+				} else if f.Type.Name() == "Curie" {
+					cur := prepCurieData(f.Name, reflect.StructTag(ftmp))
+					ent.curies[curiecnt] = cur
+					curiecnt++
 				}
 			}
 			entities[ent.class] = ent	
@@ -173,6 +192,10 @@ func prepLinkData(rel string, tags reflect.StructTag) link {
 	var tag		string
 
 	lnk.rel = rel
+
+	if tag = tags.Get("class"); tag != "" {
+		lnk.class = tag
+	}
 
 	if tag = tags.Get("href"); tag != "" {
 		lnk.href = tag
@@ -217,4 +240,26 @@ func prepActionData(name string, tags reflect.StructTag) action {
 	}
 
 	return *act
+}
+
+func prepCurieData(name string, tags reflect.StructTag) curie {
+	cur := new(curie)
+
+	var tag		string
+
+	cur.name = name
+
+	if tag = tags.Get("href"); tag != "" {
+		cur.href = tag
+	}
+
+	if tag = tags.Get("templated"); tag != "" {
+		if tag == "true" {
+			cur.templated = true
+		} else if tag == "false" {
+			cur.templated = false
+		}
+	}
+
+	return *cur
 }

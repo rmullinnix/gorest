@@ -40,6 +40,7 @@ const (
 	Application_Json          = "application/json"
 	Application_Zip           = "application/zip"
 	Application_Siren_Json	  = "application/vnd.siren+json"
+	Application_Hal_Json	  = "application/hal+json"
 	Audio_Xaiff               = "audio/x-aiff"
 	Audio_Xwav                = "audio/x-wav"
 	Image_Cgm                 = "image/cgm"

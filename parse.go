@@ -89,6 +89,8 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 	if GetHypermediaDecorator(md.producesMime) == nil {
 		if strings.Contains(md.producesMime, "siren") {
 			RegisterHypermediaDecorator(md.producesMime, NewSirenDecorator())
+		} else if strings.Contains(md.producesMime, "hal+") {
+			RegisterHypermediaDecorator(md.producesMime, NewHalDecorator())
 		}
 	}
 
