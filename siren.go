@@ -138,10 +138,14 @@ func stripSubentities(in reflect.Value, entmap map[string]entity) (map[string]in
 		vItem := in.Field(i)
 		switch vItem.Kind() {
 			case reflect.Slice, reflect.Array, reflect.Map:
-				item := vItem.Index(0)
-				if _, ok := entmap[item.Type().Name()]; ok {
-					tmp, _ := getEntityList(vItem, entmap)
-					ents = append(ents, tmp...)
+				if vItem.Len() > 0 {
+					item := vItem.Index(0)
+					if _, ok := entmap[item.Type().Name()]; ok {
+						tmp, _ := getEntityList(vItem, entmap)
+						ents = append(ents, tmp...)
+					} else {
+						out[typ.Field(i).Name] = vItem.Interface()
+					}
 				} else {
 					out[typ.Field(i).Name] = vItem.Interface()
 				}

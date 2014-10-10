@@ -23,6 +23,38 @@
 //OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 //ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// Notice: This code has been modified from its original source.
+// Modifications are licensed as specified below.
+//
+// Copyright (c) 2014, fromkeith
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+//
+// * Redistributions in binary form must reproduce the above copyright notice, this
+//   list of conditions and the following disclaimer in the documentation and/or
+//   other materials provided with the distribution.
+//
+// * Neither the name of the fromkeith nor the names of its
+//   contributors may be used to endorse or promote products derived from
+//   this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+// ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+///
+
 package gorest
 
 import (
@@ -66,7 +98,7 @@ func registerService(root string, h interface{}) {
 				if f.Name == "RestService" {
 					_manager().root = f.Tag.Get("root")
 				} else {
-					mapFieldsToMethods(t, f, tFullName, meta.root)
+					mapFieldsToMethods(t, f, tFullName, meta)
 				}
 			}
 		}
@@ -76,13 +108,21 @@ func registerService(root string, h interface{}) {
 	panic(ERROR_INVALID_INTERFACE)
 }
 
-func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName string, serviceRoot string) {
+func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName string, serviceRoot serviceMetaData) {
 
 	if f.Name != "RestService" && f.Type.Name() == "EndPoint" { //TODO: Proper type checking, not by name
 		temp := strings.Join(strings.Fields(string(f.Tag)), " ")
-		ep := makeEndPointStruct(reflect.StructTag(temp), serviceRoot)
+		ep := makeEndPointStruct(reflect.StructTag(temp), serviceRoot.root)
 		ep.parentTypeName = typeFullName
 		ep.name = f.Name
+		// override the endpoint with our default value for gzip
+		if ep.allowGzip == 2 {
+			if !serviceRoot.allowGzip {
+				ep.allowGzip = 0
+			} else {
+				ep.allowGzip = 1
+			}
+		}
 
 		var method reflect.Method
 		methodName := strings.ToUpper(f.Name[:1]) + f.Name[1:]
@@ -281,18 +321,18 @@ func panicMethNotFound(methFound bool, ep endPointStruct, t reflect.Type, f refl
 //Runtime functions below:
 //-----------------------------------------------------------------------------------------------------------------
 
-func prepareServe(context *Context, ep endPointStruct) ([]byte, restStatus) {
+func prepareServe(context *Context, ep endPointStruct) (io.ReadCloser, restStatus) {
 	servMeta := _manager().getType(ep.parentTypeName)
 
 	//Check Authorization
 
 	if servMeta.realm != "" {
-		http_code, ret_msg, header := GetAuthorizer(servMeta.realm)(context.xsrftoken, servMeta.realm, context.request.Method)
+		http_code, ret_msg, head := GetAuthorizer(servMeta.realm)(context.xsrftoken, servMeta.realm, context.request.Method)
 		// context.relSessionData = sess
 		if http_code == 200 {
 				goto Run
 		}
-		return []byte(header), restStatus{http_code, ret_msg}
+		return nil, restStatus{http_code, ret_msg, head}
 	}
 
 Run:
@@ -306,6 +346,10 @@ Run:
 	arrArgs := make([]reflect.Value, 0)
 
 	targetMethod := servVal.Type().Method(ep.methodNumberInParent)
+	mime := servMeta.consumesMime
+	if ep.overrideConsumesMime != "" {
+		mime = ep.overrideConsumesMime
+	}
 	//For POST and PUT, make and add the first "postdata" argument to the argument list
 	if ep.requestMethod == POST || ep.requestMethod == PUT {
 
@@ -317,7 +361,7 @@ Run:
 
 		//println("This is the body of the post:",body)
 
-		if v, state := makeArg(body, targetMethod.Type.In(1), servMeta.consumesMime); state.httpCode != http.StatusBadRequest {
+		if v, state := makeArg(body, targetMethod.Type.In(1), mime); state.httpCode != http.StatusBadRequest {
 			arrArgs = append(arrArgs, v)
 		} else {
 			return nil, state
@@ -335,7 +379,7 @@ Run:
 			for ij := 0; ij < len(context.args); ij++ {
 				dat := context.args[string(ij)]
 
-				if v, state := makeArg(dat, targetMethod.Type.In(startIndex).Elem(), servMeta.consumesMime); state.httpCode != http.StatusBadRequest {
+				if v, state := makeArg(dat, targetMethod.Type.In(startIndex).Elem(), mime); state.httpCode != http.StatusBadRequest {
 					varSliceArgs = reflect.Append(varSliceArgs, v)
 				} else {
 					return nil, state
@@ -351,7 +395,7 @@ Run:
 					dat = str
 				}
 
-				if v, state := makeArg(dat, targetMethod.Type.In(startIndex), servMeta.consumesMime); state.httpCode != http.StatusBadRequest {
+				if v, state := makeArg(dat, targetMethod.Type.In(startIndex), mime); state.httpCode != http.StatusBadRequest {
 					arrArgs = append(arrArgs, v)
 				} else {
 					return nil, state
@@ -369,7 +413,7 @@ Run:
 				dat = str
 			}
 
-			if v, state := makeArg(dat, targetMethod.Type.In(startIndex), servMeta.consumesMime); state.httpCode != http.StatusBadRequest {
+			if v, state := makeArg(dat, targetMethod.Type.In(startIndex), mime); state.httpCode != http.StatusBadRequest {
 				arrArgs = append(arrArgs, v)
 			} else {
 				return nil, state
@@ -387,43 +431,48 @@ Run:
 		}
 
 		if len(ret) == 1 { //This is when we have just called a GET
+			var mimeType	string
+			if mimeType = ep.overrideProducesMime; mimeType == "" {
+				mimeType = servMeta.producesMime
+			}
+
 			// check for hypermedia decorator
-			dec := GetHypermediaDecorator(servMeta.producesMime)
+			dec := GetHypermediaDecorator(mimeType)
 			hidec := ret[0].Interface()
 			if dec != nil {
 				hidec = dec.Decorate(hidec, entities)
 			}
 
 			//At this stage we should be ready to write the response to client
-			if bytarr, err := InterfaceToBytes(hidec, servMeta.producesMime); err == nil {
-				return bytarr, restStatus{http.StatusOK, ""}
+			if bytarr, err := InterfaceToBytes(hidec, mimeType); err == nil {
+				return bytarr, restStatus{http.StatusOK, "", ""}
 			} else {
 				//This is an internal error with the registered marshaller not being able to marshal internal structs
-				return nil, restStatus{http.StatusInternalServerError, "Internal server error. Could not Marshal/UnMarshal data: " + err.Error()}
+				return nil, restStatus{http.StatusInternalServerError, "Internal server error. Could not Marshal/UnMarshal data: " + err.Error(), ""}
 			}
 		} else {
 
-			return nil, restStatus{http.StatusOK, ""}
+			return nil, restStatus{http.StatusOK, "", ""}
 		}
 	}
 
 	//Just in case the whole civilization crashes and it falls thru to here. This shall never happen though... well tested
 	logger.Error.Panicln("There was a problem with request handing. Probably a bug, please report.") //Add client data, and send support alert
-	return nil, restStatus{http.StatusInternalServerError, "GoRest: Internal server error."}
+	return nil, restStatus{http.StatusInternalServerError, "GoRest: Internal server error.", ""}
 }
 
 func makeArg(data string, template reflect.Type, mime string) (reflect.Value, restStatus) {
 	i := reflect.New(template).Interface()
 
 	if data == "" {
-		return reflect.ValueOf(i).Elem(), restStatus{http.StatusOK, ""}
+		return reflect.ValueOf(i).Elem(), restStatus{http.StatusOK, "", ""}
 	}
 
 	buf := bytes.NewBufferString(data)
 	err := BytesToInterface(buf, i, mime)
 
 	if err != nil {
-		return reflect.ValueOf(nil), restStatus{http.StatusBadRequest, "Error Unmarshalling data using " + mime + ". Client sent incompetible data format in entity. (" + err.Error() + ")"}
+		return reflect.ValueOf(nil), restStatus{http.StatusBadRequest, "Error Unmarshalling data using " + mime + ". Client sent incompetible data format in entity. (" + err.Error() + ")", ""}
 	}
-	return reflect.ValueOf(i).Elem(), restStatus{http.StatusOK, ""}
+	return reflect.ValueOf(i).Elem(), restStatus{http.StatusOK, "", ""}
 }

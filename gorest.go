@@ -23,17 +23,51 @@
 //OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 //ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// Notice: This code has been modified from its original source.
+// Modifications are licensed as specified below.
+//
+// Copyright (c) 2014, fromkeith
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+//
+// * Redistributions in binary form must reproduce the above copyright notice, this
+//   list of conditions and the following disclaimer in the documentation and/or
+//   other materials provided with the distribution.
+//
+// * Neither the name of the fromkeith nor the names of its
+//   contributors may be used to endorse or promote products derived from
+//   this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+// ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+///
+
 package gorest
 
 import (
 	"encoding/json"
 	"github.com/rmullinnix/logger"
+	"io"
 	"net/http"
 	"net/url"
 	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
+	"compress/gzip"
 )
 
 type GoRestService interface {
@@ -71,6 +105,9 @@ type endPointStruct struct {
 	parentTypeName       string
 	methodNumberInParent int
 	role                 string
+	overrideProducesMime string // overrides the produces mime type
+	overrideConsumesMime string // overrides the produces mime type
+	allowGzip 		     int // 0 false, 1 true, 2 unitialized
 }
 
 type endPointSignature struct {
@@ -81,6 +118,7 @@ type endPointSignature struct {
 type restStatus struct {
 	httpCode int
 	reason   string //Especially for code in range 4XX to 5XX
+	header	 string
 }
 
 func (err restStatus) String() string {
@@ -93,6 +131,7 @@ type serviceMetaData struct {
 	producesMime string
 	root         string
 	realm        string
+	allowGzip    bool
 }
 
 var restManager *manager
@@ -235,47 +274,64 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		header, state := prepareServe(ctx, ep)
 
+		var mimeType	string
+		if mimeType = ep.overrideProducesMime; mimeType == "" {
+			mimeType = _manager().getType(ep.parentTypeName).producesMime
+		}
+
+		responseCode := -1
 		if state.httpCode == http.StatusOK {
 			switch ep.requestMethod {
 			case POST, PUT, DELETE, HEAD, OPTIONS:
 				{
 					if ctx.responseCode == 0 {
 						logger.SetResponseCode(getDefaultResponseCode(ep.requestMethod))
-						w.WriteHeader(getDefaultResponseCode(ep.requestMethod))
+						responseCode = getDefaultResponseCode(ep.requestMethod)
 					} else {
 						if !ctx.dataHasBeenWritten {
-							w.WriteHeader(ctx.responseCode)
+		
+							responseCode = ctx.responseCode
 						}
 					}
 				}
 			case GET:
 				{
 					if ctx.responseCode == 0 {
-						if !ctx.responseMimeSet {
-							w.Header().Set("Content-Type", _manager().getType(ep.parentTypeName).producesMime)
-						}
 						logger.SetResponseCode(getDefaultResponseCode(ep.requestMethod))
-						w.WriteHeader(getDefaultResponseCode(ep.requestMethod))
+						responseCode = getDefaultResponseCode(ep.requestMethod)
 					} else {
 						if !ctx.dataHasBeenWritten {
-							if !ctx.responseMimeSet {
-								w.Header().Set("Content-Type", _manager().getType(ep.parentTypeName).producesMime)
-							}
-							w.WriteHeader(ctx.responseCode)
+							responseCode = ctx.responseCode
 						}
-					}
-
-					if !ctx.overide {
-						w.Write(header)
 					}
 
 				}
 			}
 
+			if !ctx.responseMimeSet && header != nil {
+				w.Header().Set("Content-Type", mimeType)
+			}
+
+			if header != nil && !ctx.overide {
+				if ep.allowGzip == 1 && strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+					w.Header().Set("Content-Encoding", "gzip")
+					w.WriteHeader(responseCode)
+					gzipWriter := gzip.NewWriter(w)
+					defer gzipWriter.Close()
+					io.Copy(gzipWriter, header)
+				} else {
+					w.WriteHeader(responseCode)
+					io.Copy(w, header)
+				}
+			} else {
+				w.WriteHeader(responseCode)
+			}
+
+
 		} else {
 			logger.Error.Println("Problem with request. Error:", r.Method, state.httpCode, state.reason, "; Request: ", r.URL.RequestURI())
-			if len(header) > 0 {
-				items := strings.Split(string(header), ": ")
+			if len(state.header) > 0 {
+				items := strings.Split(string(state.header), ": ")
 				w.Header().Set(items[0], items[1])
 			}
 			logger.SetResponseCode(state.httpCode)

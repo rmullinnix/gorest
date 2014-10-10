@@ -23,12 +23,45 @@
 //OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 //ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// Notice: This code has been modified from its original source.
+// Modifications are licensed as specified below.
+//
+// Copyright (c) 2014, fromkeith
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without modification,
+// are permitted provided that the following conditions are met:
+//
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+//
+// * Redistributions in binary form must reproduce the above copyright notice, this
+//   list of conditions and the following disclaimer in the documentation and/or
+//   other materials provided with the distribution.
+//
+// * Neither the name of the fromkeith nor the names of its
+//   contributors may be used to endorse or promote products derived from
+//   this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+// ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+// ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+///
+
 package gorest
 
 import (
 	"github.com/rmullinnix/logger"
 	"reflect"
 	"strings"
+	"strconv"
 )
 
 type argumentData struct {
@@ -43,6 +76,18 @@ type param struct {
 
 var aLLOWED_PAR_TYPES = []string{"string", "int", "int32", "int64", "bool", "float32", "float64"}
 
+const (
+	errorString_MarshalMimeType = "The Marshaller for mime-type:[%s], is not registered. Please register this type before registering your service."
+	errorString_Realm = "The realm:[%s], is not registered. Please register this realm before registering your service."
+	errorString_UnknownMethod = "Unknown method type:[%s] in endpoint declaration. Allowed types {GET,POST,PUT,DELETE,HEAD,OPTIONS}"
+	errorString_EndpointDecl = "Endpoint declaration must have the tags 'method' and 'path' "
+	errorString_StringMap = "Only string keyed maps e.g( map[string]... ) are allowed on the [%s] tag. Endpoint: %s"
+	errorString_DuplicateQueryParam = "Duplicate Query Parameter name(%s) in REST path: %s"
+	errorString_QueryParamConfig = "Please check that your Query Parameters are configured correctly for endpoint: %s"
+	errorString_VariableLength = "Variable length endpoints can only have one parameter declaration: %s"
+	errorString_RegisterSameMethod = "Can not register two endpoints with same request-method(%s) and same signature: %s VS %s"
+	errorString_UniqueRoot = "Variable length endpoints can only be mounted on a unique root. Root already used: %s <> %s"
+)
 func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, name string) serviceMetaData {
 	md := new(serviceMetaData)
 
@@ -99,6 +144,18 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 		if GetAuthorizer(tag) == nil {
 			logger.Error.Fatalln("The realm:[" + tag + "], is not registered. Please register this realm before registering your service.")
 		}
+	}
+
+	if tag := tags.Get("gzip"); tag != "" {
+		b, err := strconv.ParseBool(tag)
+		if err != nil {
+			logger.Warning.Println("Service has invalid gzip value. Defaulting to off settings! %s", name)
+			md.allowGzip = false
+		} else {
+			md.allowGzip = b
+		}
+	} else {
+		md.allowGzip = false
 	}
 
 	md.template = i
@@ -158,6 +215,20 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStru
 			ms.role = tag
 		}
 
+		if tag := tags.Get("consumes"); tag != "" {
+			ms.overrideConsumesMime = tag
+			if GetMarshallerByMime(tag) == nil {
+				logger.Error.Panicf(errorString_MarshalMimeType, tag)
+			}
+		}
+
+		if tag := tags.Get("produces"); tag != "" {
+			ms.overrideProducesMime = tag
+			if GetMarshallerByMime(tag) == nil {
+				logger.Error.Panicf(errorString_MarshalMimeType, tag)
+			}
+		}
+
 		if tag := tags.Get("postdata"); tag != "" {
 			ms.postdataType = tag
 			if strings.HasPrefix(tag, "[]") { //Check for slice/array/list types.
@@ -174,6 +245,19 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStru
 				}
 
 			}
+		}
+		if tag := tags.Get("gzip"); tag != "" {
+			b, err := strconv.ParseBool(tag)
+			if err != nil {
+				logger.Warning.Println("Endpoint has invalid gzip value. Defaulting to off/parent settings! " + ms.name)
+				ms.allowGzip = 2
+			} else if b {
+				ms.allowGzip = 1
+			} else {
+				ms.allowGzip = 0
+			}
+		} else {
+			ms.allowGzip = 2
 		}
 
 		parseParams(ms)
