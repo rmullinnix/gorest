@@ -128,7 +128,7 @@ func (err restStatus) String() string {
 type serviceMetaData struct {
 	template     interface{}
 	consumesMime string // change to array / support multiple based on Content-Type header
-	producesMime string // change to array / support multiple based on Accept header
+	producesMime []string // change to array / support multiple based on Accept header
 	root         string
 	realm        string
 	allowGzip    bool
@@ -264,11 +264,6 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		header, state := prepareServe(ctx, ep)
 
-		var mimeType	string
-		if mimeType = ep.overrideProducesMime; mimeType == "" {
-			mimeType = _manager().getType(ep.parentTypeName).producesMime
-		}
-
 		responseCode := -1
 		if state.httpCode == http.StatusOK {
 			switch ep.requestMethod {
@@ -299,7 +294,7 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 
 			if !ctx.responseMimeSet && header != nil {
-				w.Header().Set("Content-Type", mimeType)
+				w.Header().Set("Content-Type", ctx.responseMimeType)
 			}
 
 			if header != nil && !ctx.overide {

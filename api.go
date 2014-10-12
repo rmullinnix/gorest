@@ -94,6 +94,7 @@ type Context struct {
 	overide            bool
 	responseCode       int
 	responseMimeSet    bool
+	responseMimeType   string
 	dataHasBeenWritten bool
 }
 

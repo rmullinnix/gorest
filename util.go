@@ -32,6 +32,7 @@ import (
 	"errors"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 //Marshals the data in interface i into a byte slice, using the Marhaller/Unmarshaller specified in mime.
@@ -43,6 +44,19 @@ func Marshal(i interface{}, mime string) (io.ReadCloser, error) {
 //Marshals the data in interface i into a byte slice, using the Marhaller/Unmarshaller specified in mime.
 //The Marhaller/Unmarshaller must have been registered before using gorest.RegisterMarshaller
 func InterfaceToBytes(i interface{}, mime string) (io.ReadCloser, error) {
+	marshalType := mime
+
+	if strings.Contains(mime, "json") {
+		marshalType = "json"
+	} else if strings.Contains(mime, "xml") {
+		marshalType = "xml"
+	}
+
+	m := GetMarshallerByMime(marshalType)
+	if m != nil {
+		return m.Marshal(i)
+	}
+
 	v := reflect.ValueOf(i)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -59,7 +73,7 @@ func InterfaceToBytes(i interface{}, mime string) (io.ReadCloser, error) {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return ioutil.NopCloser(bytes.NewBuffer([]byte(strconv.FormatInt(v.Int(), 10)))), nil
 	case reflect.Struct, reflect.Slice, reflect.Array, reflect.Map:
-		m := GetMarshallerByMime(mime)
+		m := GetMarshallerByMime(marshalType)
 		return m.Marshal(i)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		return ioutil.NopCloser(bytes.NewBuffer([]byte(strconv.FormatUint(v.Uint(), 10)))), nil
@@ -78,6 +92,14 @@ func Unmarshal(buf *bytes.Buffer, i interface{}, mime string) error {
 	return BytesToInterface(buf, i, mime)
 }
 func BytesToInterface(buf *bytes.Buffer, i interface{}, mime string) error {
+	marshalType := mime
+
+	if strings.Contains(mime, "json") {
+		marshalType = "json"
+	} else if strings.Contains(mime, "xml") {
+		marshalType = "xml"
+	}
+
 	v := reflect.ValueOf(i)
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -96,7 +118,7 @@ func BytesToInterface(buf *bytes.Buffer, i interface{}, mime string) error {
 		reflect.ValueOf(i).Elem().SetString(buf.String())
 		break
 	case reflect.Struct, reflect.Slice, reflect.Array, reflect.Map:
-		m := GetMarshallerByMime(mime)
+		m := GetMarshallerByMime(marshalType)
 		return m.Unmarshal(buf.Bytes(), i)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 

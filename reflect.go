@@ -432,8 +432,19 @@ Run:
 
 		if len(ret) == 1 { //This is when we have just called a GET
 			var mimeType	string
+
+			accept := context.request.Header.Get("Accept")
+
 			if mimeType = ep.overrideProducesMime; mimeType == "" {
-				mimeType = servMeta.producesMime
+				mimeType = servMeta.producesMime[0]
+				if len(accept) > 0 {
+				 	for i := 0; i < len(servMeta.producesMime); i++ {
+						if strings.Contains(accept, servMeta.producesMime[i]) {
+							mimeType = servMeta.producesMime[i]
+							break
+						}
+					}
+				}
 			}
 
 			// check for hypermedia decorator
@@ -443,6 +454,7 @@ Run:
 				hidec = dec.Decorate(hidec, entities)
 			}
 
+			context.responseMimeType = mimeType
 			//At this stage we should be ready to write the response to client
 			if bytarr, err := InterfaceToBytes(hidec, mimeType); err == nil {
 				return bytarr, restStatus{http.StatusOK, "", ""}

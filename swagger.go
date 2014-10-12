@@ -1,7 +1,6 @@
 package gorest
 
 import (
-	"fmt"
 	"strings"
 	"reflect"
 )
@@ -82,7 +81,7 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 	spec.BasePath = basePath
 	spec.ResourcePath = ""
 	spec.APIs = make([]API, len(_manager().endpoints))
-	spec.Produces = make([]string, len(_manager().serviceTypes))
+	spec.Produces = make([]string, 0)
 	spec.Consumes = make([]string, len(_manager().serviceTypes))
 	spec.Authorizations = make(map[string]Authorization, 0)
 	spec.Models = make(map[string]Model, 0)
@@ -90,7 +89,7 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 	x := 0
 	var svcInt 	reflect.Type 
 	for _, st := range _manager().serviceTypes {
-		spec.Produces[x] = st.producesMime
+		spec.Produces = append(spec.Produces, st.producesMime...)
 		spec.Consumes[x] = st.consumesMime
 	
         	svcInt = reflect.TypeOf(st.template)
@@ -98,10 +97,8 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 	        if svcInt.Kind() == reflect.Ptr {
 	                svcInt = svcInt.Elem()
        		}
-		fmt.Println("meta ", st)
 	}
 
-	fmt.Println(svcInt)
 	// skip authorizations for now
 
 	x = 0

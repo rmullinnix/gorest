@@ -108,34 +108,41 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 
 	if GetMarshallerByMime(tag) == nil {
 		if strings.Contains(tag, "json") {
-			RegisterMarshaller(tag, NewJSONMarshaller())
+			RegisterMarshaller("json", NewJSONMarshaller())
 		} else if strings.Contains(tag, "xml") {
-			RegisterMarshaller(tag, NewXMLMarshaller())
+			RegisterMarshaller("xml", NewXMLMarshaller())
 		} else {
 			logger.Error.Fatalln("The Marshaller for mime-type:[" + tag + "], is not registered. Please register this type before registering your service.")
 		}
 	}
 
+	md.producesMime = make([]string, 0)
 	if tag = tags.Get("produces"); tag == "" {
 		tag = Application_Json // Default
+		md.producesMime = append(md.producesMime, tag)
+	} else {
+		prods := strings.Split(tag, ",")
+		md.producesMime = append(md.producesMime, prods...)
 	}
-	md.producesMime = tag
 
 	if GetMarshallerByMime(tag) == nil {
 		if strings.Contains(tag, "json") {
-			RegisterMarshaller(tag, NewJSONMarshaller())
+			RegisterMarshaller("json", NewJSONMarshaller())
 		} else if strings.Contains(tag, "xml") {
-			RegisterMarshaller(tag, NewXMLMarshaller())
+			RegisterMarshaller("xml", NewXMLMarshaller())
 		} else {
 			logger.Error.Fatalln("The Marshaller for mime-type:[" + tag + "], is not registered. Please register this type before registering your service.")
 		}
 	}
 
-	if GetHypermediaDecorator(md.producesMime) == nil {
-		if strings.Contains(md.producesMime, "siren") {
-			RegisterHypermediaDecorator(md.producesMime, NewSirenDecorator())
-		} else if strings.Contains(md.producesMime, "hal+") {
-			RegisterHypermediaDecorator(md.producesMime, NewHalDecorator())
+	for i := 0; i < len(md.producesMime); i++ {
+		mimeType := md.producesMime[i]
+		if GetHypermediaDecorator(mimeType) == nil {
+			if strings.Contains(mimeType, "siren") {
+				RegisterHypermediaDecorator(mimeType, NewSirenDecorator())
+			} else if strings.Contains(mimeType, "hal+") {
+				RegisterHypermediaDecorator(mimeType, NewHalDecorator())
+			}
 		}
 	}
 
