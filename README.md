@@ -1,8 +1,8 @@
 gorest
 ======
 
-copy and modification of gorest libary from code.google.com/p/gorest
-synched some things from https://github.com/fromkeith/gorest (not sure if it will get in synch enough to go to merge)
+* copy and modification of gorest libary from code.google.com/p/gorest
+* synched some things from https://github.com/fromkeith/gorest (not sure if it will get in synch enough to go to merge)
 
 ### Changes
 * xsrftoken - altered the use of the token to support Authorization: Bearer <token> through the http header
