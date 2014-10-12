@@ -1,12 +1,14 @@
 gorest
 ======
 
-copy and modification of gorest libary from code.google.com/p/gorest
+* copy and modification of gorest libary from code.google.com/p/gorest
+* synched some things from https://github.com/fromkeith/gorest (not sure if it will get in synch enough to go to merge)
 
 ### Changes
 * xsrftoken - altered the use of the token to support Authorization: Bearer <token> through the http header
 * logging - put in a different log framework - adding logging of request/response with elapsed time (for integration with logstash)
-* hypermedia - currently adding hypermedia decorators (siren in dev) to support mime type of application/vnd.siren+json
+* hypermedia - currently adding hypermedia decorators (applicatin/vnd.siren+json, application/hal+json in dev)
+* swagger - generate swagger 1.2 doc during runtime (skeleton working, need more work on models section)
 
 ### Other things connected to the framework
 * using Consul for service registry and k/v store
