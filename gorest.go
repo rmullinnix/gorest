@@ -127,8 +127,8 @@ func (err restStatus) String() string {
 
 type serviceMetaData struct {
 	template     interface{}
-	consumesMime string
-	producesMime string
+	consumesMime string // change to array / support multiple based on Content-Type header
+	producesMime string // change to array / support multiple based on Accept header
 	root         string
 	realm        string
 	allowGzip    bool
@@ -245,16 +245,6 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	defer func() {
-		if rec := recover(); rec != nil {
-			logger.Error.Println("Internal Server Error: Could not serve page: ", r.Method, url_)
-			logger.Error.Println(rec)
-			logger.Error.Printf("%s", debug.Stack())
-			logger.SetResponseCode(http.StatusInternalServerError)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-	}()
-
 	if err != nil {
 		logger.Warning.Println("Could not serve page: ", r.Method, r.URL.RequestURI(), "Error:", err)
 		logger.SetResponseCode(400)
@@ -339,8 +329,9 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.Write([]byte(state.reason))
 		}
 	} else if url_ == _manager().root {
-		epList := getEndPointList()
-		data, _ := json.Marshal(epList)
+		basePath := "http://" + r.Host + "/"
+		swagDoc := buildSwaggerDoc(basePath)
+		data, _ := json.Marshal(swagDoc)
 		logger.SetResponseCode(http.StatusFound)
 		w.WriteHeader(http.StatusFound)
 		w.Write(data)
