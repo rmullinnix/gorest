@@ -141,6 +141,7 @@ type manager struct {
 	root		string
 	serviceTypes map[string]serviceMetaData
 	endpoints    map[string]endPointStruct
+	swaggerEP	string
 }
 
 func newManager() *manager {
@@ -323,7 +324,7 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(state.httpCode)
 			w.Write([]byte(state.reason))
 		}
-	} else if url_ == _manager().root {
+	} else if url_ == _manager().swaggerEP {
 		basePath := "http://" + r.Host + "/"
 		swagDoc := buildSwaggerDoc(basePath)
 		data, _ := json.Marshal(swagDoc)

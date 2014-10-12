@@ -91,13 +91,17 @@ func registerService(root string, h interface{}) {
 	if t.Kind() == reflect.Struct {
 		if field, found := t.FieldByName("RestService"); found {
 			temp := strings.Join(strings.Fields(string(field.Tag)), " ")
-			meta := prepServiceMetaData(root, reflect.StructTag(temp), h, t.Name())
+			tags := reflect.StructTag(temp)
+			_manager().root = tags.Get("root")
+			if tag := tags.Get("swagger"); tag != "" {
+				_manager().swaggerEP = tags.Get("root") + tag
+			}
+			
+			meta := prepServiceMetaData(root, tags, h, t.Name())
 			tFullName := _manager().addType(t.PkgPath()+"/"+t.Name(), meta)
 			for i := 0; i < t.NumField(); i++ {
 				f := t.Field(i)
-				if f.Name == "RestService" {
-					_manager().root = f.Tag.Get("root")
-				} else {
+				if f.Name != "RestService" {
 					mapFieldsToMethods(t, f, tFullName, meta)
 				}
 			}

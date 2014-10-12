@@ -97,6 +97,14 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 	        if svcInt.Kind() == reflect.Ptr {
 	                svcInt = svcInt.Elem()
        		}
+
+		if field, found := svcInt.FieldByName("RestService"); found {
+			temp := strings.Join(strings.Fields(string(field.Tag)), " ")
+			tags := reflect.StructTag(temp)
+			if tag := tags.Get("sw.apiVersion"); tag != "" {
+				spec.APIVersion = tag
+			}
+		}
 	}
 
 	// skip authorizations for now
