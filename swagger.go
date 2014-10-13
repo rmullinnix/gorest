@@ -3,6 +3,8 @@ package gorest
 import (
 	"strings"
 	"reflect"
+	"regexp"
+	"strconv"
 )
 
 type SwaggerAPI12 struct {
@@ -57,7 +59,7 @@ type Model struct {
 	ID		string			`json:"id"`
 	Description	string			`json:"description,omitempty"`
 	Required	[]string		`json:"required,omitempty"`
-	Properties	map[string]Property 	`json:"properties"`
+	Properties	map[string]interface{} 	`json:"properties"`
 	SubTypes	[]string		`json:"subTypes,omitempty"`
 	Discriminator	string			`json:"discriminator,omitempty"`
 }
@@ -66,6 +68,13 @@ type Property struct {
 	Type		string			`json:"type"`
 	Format		string			`json:"format,omitempty"`
 	Description	string			`json:"description,omitempty"`
+}
+
+type PropertyArray struct {
+	Type		string			`json:"type"`
+	Format		string			`json:"format,omitempty"`
+	Description	string			`json:"description,omitempty"`
+	Items		Property		`json:"items"`
 }
 
 type Authorization struct {
@@ -113,16 +122,35 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 	for _, ep := range _manager().endpoints {
 		var api		API
 
-		sig := strings.Split(ep.signiture, "?")
-		api.Path = sig[0]
+		api.Path = cleanPath(ep.signiture)
 		//api.Description = ep.description
 
 		var op		Operation
 
 		api.Operations = make([]Operation, 1)
+
+		if field, found := svcInt.FieldByName(ep.name); found {
+			temp := strings.Join(strings.Fields(string(field.Tag)), " ")
+			tags := reflect.StructTag(temp)
+			if tag := tags.Get("sw.summary"); tag != "" {
+				op.Summary = tag
+			}
+
+			if tag := tags.Get("sw.notes"); tag != "" {
+				op.Notes = tag
+			}
+
+			if tag := tags.Get("sw.nickname"); tag != "" {
+				op.Nickname = tag
+			} else {
+				op.Nickname = ep.name
+			}
+
+			op.Responses = populateResponses(tags)
+		}
+
 		op.Method = ep.requestMethod
 		op.Type = ep.outputType
-		op.Nickname = ep.name
 		op.Parameters = make([]Parameter, len(ep.params) + len(ep.queryParams))
 		op.Authorizations = make([]Authorization, 0)
 		for j := 0; j < len(ep.params); j++ {
@@ -132,7 +160,7 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 			par.Name = ep.params[j].name
 			par.Type = ep.params[j].typeName
 			par.Description = ""
-			par.Required = false
+			par.Required = true
 			par.AllowMultiple = false
 
 			op.Parameters[j] = par
@@ -150,13 +178,6 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 
 			op.Parameters[j] = par
 		}
-
-		var resp	ResponseMessage
-
-		op.Responses = make([]ResponseMessage, 1)
-		resp.Code = 200
-		resp.Message = "OK"
-		op.Responses[0] = resp
 
 		api.Operations[0] = op
 		spec.APIs[x] = api
@@ -194,21 +215,64 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 	return spec
 }
 
+func cleanPath(inPath string) string {
+	sig := strings.Split(inPath, "?")
+	parts := strings.Split(sig[0], "{")
+
+	path := parts[0]
+	for i := 1; i < len(parts); i++ {
+		pathVar := strings.Split(parts[i], ":")
+		remPath := strings.Split(pathVar[1], "}")
+		path = path + "{" + pathVar[0] + "}" + remPath[1]
+	}
+
+	return path
+}
+
+func populateResponses(tags reflect.StructTag) []ResponseMessage {
+	var responses	[]ResponseMessage
+	var tag		string
+
+	responses = make([]ResponseMessage, 0)
+	if tag = tags.Get("sw.response"); tag != "" {
+		reg := regexp.MustCompile("{[^}]+}")
+		parts := reg.FindAllString(tag, -1)
+		for i := 0; i < len(parts); i++ {
+			var resp	ResponseMessage
+
+			cd_msg := strings.Split(parts[i], ":")
+			resp.Code, _ = strconv.Atoi(strings.TrimPrefix(cd_msg[0], "{"))
+			resp.Message = strings.TrimSuffix(cd_msg[1], "}")
+
+			responses = append(responses, resp)
+		}
+	}
+	return responses
+}
+
 func populateModel(t reflect.Type) Model {
 	var model	Model
 
 	model.ID = t.Name()
 	model.Description = ""
 	model.Required = make([]string, 0)
-	model.Properties = make(map[string]Property)
+	model.Properties = make(map[string]interface{})
 
 	for k := 0; k < t.NumField(); k++ {
 		sMem := t.Field(k)
-		prop, required := populateProperty(sMem)
-		model.Properties[sMem.Name] = prop
-
-		if required {
-			model.Required = append(model.Required, sMem.Name)
+		switch sMem.Type.Kind() {
+			case reflect.Slice, reflect.Array, reflect.Map:
+				prop, required := populatePropertyArray(sMem)
+				model.Properties[sMem.Name] = prop
+				if required {
+					model.Required = append(model.Required, sMem.Name)
+				}
+			default:
+				prop, required := populateProperty(sMem)
+				model.Properties[sMem.Name] = prop
+				if required {
+					model.Required = append(model.Required, sMem.Name)
+				}
 		}
 	}
 
@@ -222,6 +286,41 @@ func populateProperty(sf reflect.StructField) (Property, bool) {
 	tags := reflect.StructTag(stmp)
 	prop.Type = sf.Type.String()
 	prop.Format = sf.Type.String()
+
+        var tag         string
+
+        if tag = tags.Get("sw.format"); tag != "" {
+                prop.Format = tag
+        }
+
+        if tag = tags.Get("sw.description"); tag != "" {
+                prop.Description = tag
+        }
+
+	required := false
+        if tag = tags.Get("sw.required"); tag != "" {
+		if tag == "true" {
+                	required = true
+		}
+        }
+
+	return prop, required
+}
+
+func populatePropertyArray(sf reflect.StructField) (PropertyArray, bool) {
+	var prop	PropertyArray
+
+	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
+	tags := reflect.StructTag(stmp)
+	prop.Type = "array"
+
+	// remove the package if present
+	parts := strings.Split(sf.Type.Elem().String(), ".")
+	if len(parts) > 1 {
+		prop.Items.Type = parts[1]
+	} else {
+		prop.Items.Type = parts[0]
+	}
 
         var tag         string
 

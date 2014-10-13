@@ -14,8 +14,8 @@ type States struct {
 }
 
 type State struct {
-	Name		string		`sw.description:"The full name of the state"`
-	Value		string		`sw.description:"The two letter abbreviation of the state"`
+	Name		string		`sw.description:"The full name of the state" sw.required:"true"`
+	Value		string		`sw.description:"The two letter abbreviation of the state" sw.required:"true"`
 }
 
 //Service Definition
@@ -24,9 +24,11 @@ type ReferenceService struct {
 		   	    produces:"application/json,application/vnd.siren+json,application/hal+json"
 			    swagger:"/swagger" sw.apiVersion:"1.0"`
 	getLookup    gorest.EndPoint `method:"GET"  path:"/lookup?{name:string}" output:"State"
-			    sw.sumamry:"Retrieve state name and abbreviation"
+			    sw.summary:"Retrieve state name and abbreviation"
 			    sw.notes:"The input variable doesn't do anything in this example"
-			    sw.nickname:"GetState"`
+			    sw.nickname:"GetState"
+			    sw.response:"{200:OK},{500:Internal Server Error}"`
+	getTest      gorest.EndPoint `method:"GET"  path:"/string/{name:string}/{test:string}/multiple" output:"string"`
 	getString    gorest.EndPoint `method:"GET"  path:"/string?{name:string}" output:"string"`
 	getArray     gorest.EndPoint `method:"GET"  path:"/array?{name:string}" output:"States"`
 }
@@ -75,6 +77,10 @@ func (serv ReferenceService) GetLookup(name string) State {
 func (serv ReferenceService) GetString(name string) string {
 
 	return name
+}
+
+func (serv ReferenceService) GetTest(name string, test string) string {
+	return name + test
 }
 
 func (serv ReferenceService) GetArray(name string) States {

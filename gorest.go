@@ -107,7 +107,7 @@ type endPointStruct struct {
 	role                 string
 	overrideProducesMime string // overrides the produces mime type
 	overrideConsumesMime string // overrides the produces mime type
-	allowGzip 		     int // 0 false, 1 true, 2 unitialized
+	allowGzip 	     int // 0 false, 1 true, 2 unitialized
 }
 
 type endPointSignature struct {
@@ -328,8 +328,8 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		basePath := "http://" + r.Host + "/"
 		swagDoc := buildSwaggerDoc(basePath)
 		data, _ := json.Marshal(swagDoc)
-		logger.SetResponseCode(http.StatusFound)
-		w.WriteHeader(http.StatusFound)
+		logger.SetResponseCode(http.StatusOK)
+		w.WriteHeader(http.StatusOK)
 		w.Write(data)
 
 	} else {
