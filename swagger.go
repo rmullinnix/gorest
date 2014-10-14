@@ -309,14 +309,38 @@ func populateProperty(sf reflect.StructField) (Property, bool) {
 
 	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
 	tags := reflect.StructTag(stmp)
-	prop.Type = sf.Type.String()
-	prop.Format = sf.Type.String()
+	if sf.Type.String() == "bool" {
+		prop.Type = "boolean"
+	} else {
+		prop.Type = sf.Type.String()
+	}
 
-        var tag         string
+	if sf.Type.String() == "time.Time" {
+		prop.Type = "string"
+		prop.Format = "date-time"
+	} else if sf.Type.Kind() == reflect.Struct {
+		parts := strings.Split(sf.Type.String(), ".")
+		if len(parts) > 1 {
+			prop.Type = parts[1]
+		} else {
+			prop.Type = parts[0]
+		}
+
+		if _, ok := spec.Models[sf.Type.Name()]; !ok {
+			model := populateModel(sf.Type)
+			_spec().Models[model.ID] = model
+		}
+	}
+
+	var tag         string
 
         if tag = tags.Get("sw.format"); tag != "" {
                 prop.Format = tag
-        }
+        } else {
+		if prop.Format == "" {
+			prop.Format = prop.Type
+		}
+	}
 
         if tag = tags.Get("sw.description"); tag != "" {
                 prop.Description = tag

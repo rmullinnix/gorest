@@ -224,15 +224,27 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStru
 
 		if tag := tags.Get("consumes"); tag != "" {
 			ms.overrideConsumesMime = tag
-			if GetMarshallerByMime(tag) == nil {
-				logger.Error.Panicf(errorString_MarshalMimeType, tag)
+			if strings.Contains(tag, "json") {
+				RegisterMarshaller("json", NewJSONMarshaller())
+			} else if strings.Contains(tag, "xml") {
+				RegisterMarshaller("xml", NewXMLMarshaller())
+			} else {
+				if GetMarshallerByMime(tag) == nil {
+					logger.Error.Panicf(errorString_MarshalMimeType, tag)
+				}
 			}
 		}
 
 		if tag := tags.Get("produces"); tag != "" {
 			ms.overrideProducesMime = tag
-			if GetMarshallerByMime(tag) == nil {
-				logger.Error.Panicf(errorString_MarshalMimeType, tag)
+			if strings.Contains(tag, "json") {
+				RegisterMarshaller("json", NewJSONMarshaller())
+			} else if strings.Contains(tag, "xml") {
+				RegisterMarshaller("xml", NewXMLMarshaller())
+			} else {
+				if GetMarshallerByMime(tag) == nil {
+					logger.Error.Panicf(errorString_MarshalMimeType, tag)
+				}
 			}
 		}
 

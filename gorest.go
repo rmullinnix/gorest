@@ -254,7 +254,15 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ep, args, queryArgs, _, found := getEndPointByUrl(r.Method, url_); found {
+	if url_ == _manager().swaggerEP {
+		basePath := "http://" + r.Host + "/"
+		swagDoc := buildSwaggerDoc(basePath)
+		data, _ := json.Marshal(swagDoc)
+		logger.SetResponseCode(http.StatusOK)
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
+
+	} else if ep, args, queryArgs, _, found := getEndPointByUrl(r.Method, url_); found {
 
 		ctx := new(Context)
 		ctx.writer = w
@@ -324,14 +332,6 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(state.httpCode)
 			w.Write([]byte(state.reason))
 		}
-	} else if url_ == _manager().swaggerEP {
-		basePath := "http://" + r.Host + "/"
-		swagDoc := buildSwaggerDoc(basePath)
-		data, _ := json.Marshal(swagDoc)
-		logger.SetResponseCode(http.StatusOK)
-		w.WriteHeader(http.StatusOK)
-		w.Write(data)
-
 	} else {
 		logger.Warning.Println("Could not serve page, path not found: ", r.Method, url_)
 		logger.SetResponseCode(http.StatusNotFound)
