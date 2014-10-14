@@ -82,8 +82,10 @@ type Authorization struct {
 	Description	string			`json:"description,omitempty"`
 }
 
-func buildSwaggerDoc(basePath string) SwaggerAPI12 {
-	var spec		SwaggerAPI12
+var spec		*SwaggerAPI12
+
+func newSpec(basePath string) *SwaggerAPI12 {
+	spec = new(SwaggerAPI12)
 
 	spec.SwaggerVersion = "1.2"
 	spec.APIVersion	= ""
@@ -94,6 +96,16 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 	spec.Consumes = make([]string, len(_manager().serviceTypes))
 	spec.Authorizations = make(map[string]Authorization, 0)
 	spec.Models = make(map[string]Model, 0)
+
+	return spec
+}
+
+func _spec() *SwaggerAPI12 {
+	return spec
+}
+
+func buildSwaggerDoc(basePath string) SwaggerAPI12 {
+	spec = newSpec(basePath)
 
 	x := 0
 	var svcInt 	reflect.Type 
@@ -179,6 +191,19 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 			op.Parameters[j] = par
 		}
 
+		if ep.postdataType != "" {
+			var par		Parameter
+
+			par.ParamType = "body"
+			par.Name = ep.postdataType
+			par.Type = ep.postdataType
+			par.Description = ""
+			par.Required = true
+			par.AllowMultiple = false
+
+			op.Parameters = append(op.Parameters, par)
+		}
+
 		api.Operations[0] = op
 		spec.APIs[x] = api
 		x++
@@ -212,7 +237,7 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 		}
 	}	
 
-	return spec
+	return *spec
 }
 
 func cleanPath(inPath string) string {
@@ -315,11 +340,19 @@ func populatePropertyArray(sf reflect.StructField) (PropertyArray, bool) {
 	prop.Type = "array"
 
 	// remove the package if present
-	parts := strings.Split(sf.Type.Elem().String(), ".")
+	et := sf.Type.Elem()
+	parts := strings.Split(et.String(), ".")
 	if len(parts) > 1 {
 		prop.Items.Type = parts[1]
 	} else {
 		prop.Items.Type = parts[0]
+	}
+
+	if et.Kind() == reflect.Struct {
+		if _, ok := spec.Models[et.Name()]; !ok {
+			model := populateModel(et)
+			_spec().Models[model.ID] = model
+		}
 	}
 
         var tag         string
