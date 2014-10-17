@@ -87,6 +87,7 @@ const (
 	errorString_VariableLength = "Variable length endpoints can only have one parameter declaration: %s"
 	errorString_RegisterSameMethod = "Can not register two endpoints with same request-method(%s) and same signature: %s VS %s"
 	errorString_UniqueRoot = "Variable length endpoints can only be mounted on a unique root. Root already used: %s <> %s"
+	errorString_Gzip = "Service has invalid gzip value. Defaulting to off settings! %s"
 )
 func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, name string) serviceMetaData {
 	md := new(serviceMetaData)
@@ -106,14 +107,8 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 	}
 	md.consumesMime = tag
 
-	if GetMarshallerByMime(tag) == nil {
-		if strings.Contains(tag, "json") {
-			RegisterMarshaller("json", NewJSONMarshaller())
-		} else if strings.Contains(tag, "xml") {
-			RegisterMarshaller("xml", NewXMLMarshaller())
-		} else {
-			logger.Error.Fatalln("The Marshaller for mime-type:[" + tag + "], is not registered. Please register this type before registering your service.")
-		}
+	if !addMimeType(tag) {
+		logger.Error.Fatalf(errorString_MarshalMimeType, tag)
 	}
 
 	md.producesMime = make([]string, 0)
@@ -125,38 +120,25 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 		md.producesMime = append(md.producesMime, prods...)
 	}
 
-	if GetMarshallerByMime(tag) == nil {
-		if strings.Contains(tag, "json") {
-			RegisterMarshaller("json", NewJSONMarshaller())
-		} else if strings.Contains(tag, "xml") {
-			RegisterMarshaller("xml", NewXMLMarshaller())
-		} else {
-			logger.Error.Fatalln("The Marshaller for mime-type:[" + tag + "], is not registered. Please register this type before registering your service.")
+	for i := 0; i < len(md.producesMime); i++ {
+		mimeType := md.producesMime[i]
+		if !addMimeType(mimeType) {
+			logger.Error.Fatalf(errorString_MarshalMimeType, tag)
 		}
 	}
 
-	for i := 0; i < len(md.producesMime); i++ {
-		mimeType := md.producesMime[i]
-		if GetHypermediaDecorator(mimeType) == nil {
-			if strings.Contains(mimeType, "siren") {
-				RegisterHypermediaDecorator(mimeType, NewSirenDecorator())
-			} else if strings.Contains(mimeType, "hal+") {
-				RegisterHypermediaDecorator(mimeType, NewHalDecorator())
-			}
-		}
-	}
 
 	if tag = tags.Get("realm"); tag != "" {
 		md.realm = tag
 		if GetAuthorizer(tag) == nil {
-			logger.Error.Fatalln("The realm:[" + tag + "], is not registered. Please register this realm before registering your service.")
+			logger.Error.Fatalf(errorString_Realm, tag)
 		}
 	}
 
 	if tag := tags.Get("gzip"); tag != "" {
 		b, err := strconv.ParseBool(tag)
 		if err != nil {
-			logger.Warning.Println("Service has invalid gzip value. Defaulting to off settings! %s", name)
+			logger.Warning.Printf(errorString_Gzip, name)
 			md.allowGzip = false
 		} else {
 			md.allowGzip = b
@@ -171,30 +153,29 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 
 func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStruct {
 
+	methodMap := map[string]string {
+		"GET":		GET,
+		"PATCH":	PATCH,
+		"POST":		POST,
+		"PUT":		PUT,
+		"DELETE":	DELETE,
+		"HEAD":		HEAD,
+		"OPTIONS":	OPTIONS,
+	}
+
 	ms := new(endPointStruct)
 
 	if tag := tags.Get("method"); tag != "" {
-		if tag == "GET" {
-			ms.requestMethod = GET
-		} else if tag == "POST" {
-			ms.requestMethod = POST
-		} else if tag == "PUT" {
-			ms.requestMethod = PUT
-		} else if tag == "DELETE" {
-			ms.requestMethod = DELETE
-		} else if tag == "HEAD" {
-			ms.requestMethod = HEAD
-		} else if tag == "OPTIONS" {
-			ms.requestMethod = OPTIONS
-		} else {
-			logger.Error.Fatalln("Unknown method type:[" + tag + "] in endpoint declaration. Allowed types {GET,POST,PUT,DELETE,HEAD,OPTIONS}")
+		ok := false
+		if ms.requestMethod, ok = methodMap[tag]; !ok {
+			logger.Error.Fatalf(errorString_UnknownMethod, tag)
 		}
 
 		if tag := tags.Get("path"); tag != "" {
 			serviceRoot = strings.TrimRight(serviceRoot, "/")
 			ms.signiture = serviceRoot + "/" + strings.Trim(tag, "/")
 		} else {
-			logger.Error.Fatalln("Endpoint declaration must have the tags 'method' and 'path' ")
+			logger.Error.Fatalln(errorString_EndpointDecl)
 		}
 
 		if tag := tags.Get("output"); tag != "" {
@@ -209,42 +190,9 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStru
 					ms.outputTypeIsMap = true
 					ms.outputType = ms.outputType[11:]
 				} else {
-					logger.Error.Fatalln("Only string keyed maps e.g( map[string]... ) are allowed on the [output] tag. Endpoint: " + ms.signiture)
+					logger.Error.Fatalf(errorString_StringMap, "output", ms.signiture)
 				}
 
-			}
-		}
-
-		if tag := tags.Get("input"); tag != "" {
-			ms.inputMime = tag
-		}
-		if tag := tags.Get("role"); tag != "" {
-			ms.role = tag
-		}
-
-		if tag := tags.Get("consumes"); tag != "" {
-			ms.overrideConsumesMime = tag
-			if strings.Contains(tag, "json") {
-				RegisterMarshaller("json", NewJSONMarshaller())
-			} else if strings.Contains(tag, "xml") {
-				RegisterMarshaller("xml", NewXMLMarshaller())
-			} else {
-				if GetMarshallerByMime(tag) == nil {
-					logger.Error.Panicf(errorString_MarshalMimeType, tag)
-				}
-			}
-		}
-
-		if tag := tags.Get("produces"); tag != "" {
-			ms.overrideProducesMime = tag
-			if strings.Contains(tag, "json") {
-				RegisterMarshaller("json", NewJSONMarshaller())
-			} else if strings.Contains(tag, "xml") {
-				RegisterMarshaller("xml", NewXMLMarshaller())
-			} else {
-				if GetMarshallerByMime(tag) == nil {
-					logger.Error.Panicf(errorString_MarshalMimeType, tag)
-				}
 			}
 		}
 
@@ -260,15 +208,34 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStru
 					ms.postdataTypeIsMap = true
 					ms.postdataType = ms.postdataType[11:]
 				} else {
-					logger.Error.Fatalln("Only string keyed maps e.g( map[string]... ) are allowed on the [postdata] tag. Endpoint: " + ms.signiture)
+					logger.Error.Fatalf(errorString_StringMap, "postdata", ms.signiture)
 				}
 
 			}
 		}
+
+		if tag := tags.Get("role"); tag != "" {
+			ms.role = tag
+		}
+
+		if tag := tags.Get("consumes"); tag != "" {
+			ms.overrideConsumesMime = tag
+			if !addMimeType(tag) {
+				logger.Error.Panicf(errorString_MarshalMimeType, tag)
+			}
+		}
+
+		if tag := tags.Get("produces"); tag != "" {
+			ms.overrideProducesMime = tag
+			if !addMimeType(tag) {
+				logger.Error.Panicf(errorString_MarshalMimeType, tag)
+			}
+		}
+
 		if tag := tags.Get("gzip"); tag != "" {
 			b, err := strconv.ParseBool(tag)
 			if err != nil {
-				logger.Warning.Println("Endpoint has invalid gzip value. Defaulting to off/parent settings! " + ms.name)
+				logger.Warning.Printf(errorString_Gzip, ms.name)
 				ms.allowGzip = 2
 			} else if b {
 				ms.allowGzip = 1
@@ -283,8 +250,30 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStru
 		return *ms
 	}
 
-	logger.Error.Fatalln("Endpoint declaration must have the tags 'method' and 'path' ")
+	logger.Error.Fatalln(errorString_EndpointDecl)
 	return *ms //Should not get here
+}
+
+func addMimeType(mimeType string) bool {
+	if GetMarshallerByMime(mimeType) == nil {
+		if strings.Contains(mimeType, "json") {
+			RegisterMarshaller("json", NewJSONMarshaller())
+		} else if strings.Contains(mimeType, "xml") {
+			RegisterMarshaller("xml", NewXMLMarshaller())
+		} else {
+			return false
+		}
+	}
+
+	if GetHypermediaDecorator(mimeType) == nil {
+		if strings.Contains(mimeType, "siren") {
+			RegisterHypermediaDecorator(mimeType, NewSirenDecorator())
+		} else if strings.Contains(mimeType, "hal+") {
+			RegisterHypermediaDecorator(mimeType, NewHalDecorator())
+		}
+	}
+
+	return true
 }
 
 func parseParams(e *endPointStruct) {
@@ -403,8 +392,6 @@ func isAllowedParamType(typeName string) bool {
 }
 
 func getEndPointByUrl(method string, url string) (endPointStruct, map[string]string, map[string]string, string, bool) {
-	//println("Getting:",url)
-
 	pathPart := url
 	queryPart := ""
 
@@ -414,91 +401,123 @@ func getEndPointByUrl(method string, url string) (endPointStruct, map[string]str
 	}
 
 	pathPart = strings.Trim(pathPart, "/")
-	totalParts := strings.Count(pathPart, "/")
-	totalParts++
+
+	if ep, found := matchEndPoint(method, pathPart); found {
+
+		var pathArgs	map[string]string
+
+		if ep.isVariableLength {
+			pathArgs = parseVarPathArgs(ep, pathPart)
+		} else {
+			pathArgs = parsePathArgs(ep, pathPart)
+		}
+
+		queryArgs, xsrft := parseQueryArgs(ep, queryPart)
+	
+		return *ep, pathArgs, queryArgs, xsrft, found
+	}
 
 	epRet := new(endPointStruct)
 	pathArgs := make(map[string]string, 0)
 	queryArgs := make(map[string]string, 0)
 
-	var ep *endPointStruct
-
-EPLOOP:
-	for _, loopEp := range _manager().endpoints {
-		//              println(method, ":", loopEp.requestMethod, pathPart, ":", loopEp.root, totalParts, ":", loopEp.signitureLen, "Variable?", loopEp.isVariableLength)
-		if loopEp.isVariableLength && (strings.Index(pathPart+"/", loopEp.root+"/") == 0) && loopEp.requestMethod == method {
-			ep = &loopEp
-			varsPart := strings.Trim(pathPart[len(loopEp.root):], "/")
-			//                      println("::::::::::::::::Root", pathPart, ">>>>>>>Vars", varsPart)
-			for upos, str1 := range strings.Split(varsPart, "/") {
-				pathArgs[string(upos)] = strings.Trim(str1, " ")
-			}
-		} else if (strings.Index(pathPart+"/", loopEp.root+"/") == 0) && loopEp.signitureLen == totalParts && loopEp.requestMethod == method {
-			ep = &loopEp
-			//We first make sure that the other parts of the path that are not parameters do actully match with the signature.
-			//If not we exit. We do not have to cary on looking since we only allow one registration per root and length.
-			for pos, name := range ep.nonParamPathPart {
-				for upos, str1 := range strings.Split(pathPart, "/") {
-					if upos == pos {
-						if name != str1 {
-							//Even though the beginning of the path matched, some other part didn't, keep looking.
-							ep = nil
-							continue EPLOOP
-						}
-						break
-					}
-				}
-			}
-			//Extract Path Arguments
-			for _, par := range ep.params {
-				for upos, str1 := range strings.Split(pathPart, "/") {
-
-					if par.positionInPath == upos {
-						pathArgs[par.name] = strings.Trim(str1, " ")
-						break
-					}
-				}
-			}
-		}
-
-		if ep != nil {
-			xsrft := ""
-			//Extract Query Arguments: These are optional in the query, so some or all of them might not be there.
-			//Also, if they are there, they do not have to be in the same order they were sepcified in on the declaration signature.
-			for _, str1 := range strings.Split(queryPart, "&") {
-				if i := strings.Index(str1, "="); i != -1 {
-					pName := str1[:i]
-					dataString := str1[i+1:]
-					if pName == XSXRF_PARAM_NAME {
-						xsrft = strings.Trim(dataString, " ")
-					} else {
-						for _, par := range ep.queryParams {
-							if par.name == pName {
-								queryArgs[pName] = strings.Trim(dataString, " ")
-								break
-							}
-						}
-					}
-
-				}
-			}
-
-			return *ep, pathArgs, queryArgs, xsrft, true //Path found
-		}
-	}
-
-	return *epRet, pathArgs, queryArgs, "", false //Path not found
+	return *epRet, pathArgs, queryArgs, "", false
 }
 
-func getEndPointList() []endPointSignature {
-	epRet := make([]endPointSignature, len(_manager().endpoints))
-	i := 0
-	for _, loopEp := range _manager().endpoints {
-		epSig := new(endPointSignature)
-		epSig.RequestMethod = loopEp.requestMethod
-		epSig.Signature = loopEp.signiture
-		epRet[i] = *epSig
-		i++
+func matchEndPoint(method string, pathPart string) (ep *endPointStruct, found bool) {
+	// try exact match first
+	pathMatch := method + ":" + pathPart
+	if mEp, match := _manager().endpoints[pathMatch]; match {
+		ep = &mEp
+		return ep, true
 	}
-	return epRet
+
+	totalParts := strings.Count(pathPart, "/") + 1
+	for _, loopEp := range _manager().endpoints {
+
+		if (strings.Index(pathPart+"/", loopEp.root+"/") == 0) && loopEp.requestMethod == method {
+			if loopEp.isVariableLength {
+				ep = &loopEp
+				return ep, true
+			}
+
+			if loopEp.signitureLen == totalParts {
+				ep = &loopEp
+				//We first make sure that the other parts of the path that are not parameters do actully match with the signature.
+				//If not we exit. We do not have to carry on looking since we only allow one registration per root and length.
+				for pos, name := range ep.nonParamPathPart {
+					for upos, str1 := range strings.Split(pathPart, "/") {
+						if upos == pos {
+							if name != str1 {
+								//Even though the beginning of the path matched, some other part didn't, keep looking.
+								ep = nil
+							}
+							break
+						}
+					}
+
+					if ep == nil {
+						break
+					}
+				}
+
+				if ep != nil {
+					return ep, true
+				}
+			}
+		}
+	}
+	return ep, false
+}
+
+func parseVarPathArgs(ep *endPointStruct, pathPart string) map[string]string {
+	pathArgs := make(map[string]string, 0)
+	varsPart := strings.Trim(pathPart[len(ep.root):], "/")
+
+	for upos, str1 := range strings.Split(varsPart, "/") {
+		pathArgs[string(upos)] = strings.Trim(str1, " ")
+	}
+	return pathArgs
+}
+
+func parsePathArgs(ep *endPointStruct, pathPart string) map[string]string {
+	pathArgs := make(map[string]string, 0)
+	//Extract Path Arguments
+	for _, par := range ep.params {
+		for upos, str1 := range strings.Split(pathPart, "/") {
+
+			if par.positionInPath == upos {
+				pathArgs[par.name] = strings.Trim(str1, " ")
+				break
+			}
+		}
+	}
+	return pathArgs
+}
+
+func parseQueryArgs(ep *endPointStruct, queryPart string) (map[string]string, string) {
+	queryArgs := make(map[string]string, 0)
+
+	xsrft := ""
+	//Extract Query Arguments: These are optional in the query, so some or all of them might not be there.
+	//Also, if they are there, they do not have to be in the same order they were sepcified in on the declaration signature.
+	for _, str1 := range strings.Split(queryPart, "&") {
+		if i := strings.Index(str1, "="); i != -1 {
+			pName := str1[:i]
+			dataString := str1[i+1:]
+			if pName == XSXRF_PARAM_NAME {
+				xsrft = strings.Trim(dataString, " ")
+			} else {
+				for _, par := range ep.queryParams {
+					if par.name == pName {
+						queryArgs[pName] = strings.Trim(dataString, " ")
+						break
+					}
+				}
+			}
+
+		}
+	}
+
+	return queryArgs, xsrft
 }

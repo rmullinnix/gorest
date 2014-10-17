@@ -75,7 +75,7 @@ func getVarArgs(t *testing.T) {
 	rb.AddCookie(cook)
 	res, _ := rb.Get(&str, 200)
 	AssertEqual(res.StatusCode, 200, "Get var-args Int ResponseCode", t)
-	AssertEqual(str, "Start12345678End", "Get var-args Int", t)
+	AssertEqual(str, "\"Start12345678End\"", "Get var-args Int", t)
 }
 
 func postVarArgs(t *testing.T) {
@@ -84,6 +84,7 @@ func postVarArgs(t *testing.T) {
 
 	rb, _ := NewRequestBuilder(RootPath + "types-service/var/5/24567" + xrefStr)
 	rb.AddCookie(cook)
+	rb.UseContentType("application/json")
 	res, _ := rb.Post("hello")
 	AssertEqual(res.StatusCode, 200, "Post Var args", t)
 }
@@ -96,7 +97,7 @@ func getVarArgsString(t *testing.T) {
 	rb.AddCookie(cook)
 	res, _ := rb.Get(&str, 200)
 	AssertEqual(res.StatusCode, 200, "Get var-args string ResponseCode", t)
-	AssertEqual(str, "StartOneTwoThreeEnd", "Get var-args string", t)
+	AssertEqual(str, "\"StartOneTwoThreeEnd\"", "Get var-args string", t)
 }
 
 func getString(t *testing.T) {
@@ -109,7 +110,7 @@ func getString(t *testing.T) {
 
 	res, _ := rb.Get(&str, 200)
 	AssertEqual(res.StatusCode, 200, "Get string ResponseCode", t)
-	AssertEqual(str, "Hellotrue5/Nameed6", "Get string", t)
+	AssertEqual(str, "\"Hellotrue5/Nameed6\"", "Get string", t)
 
 }
 
@@ -121,31 +122,31 @@ func getStringSimilarPath(t *testing.T) {
 	rb.AddCookie(cook)
 	res, _ := rb.Get(&str, 200)
 	AssertEqual(res.StatusCode, 200, "Get string ResponseCode", t)
-	AssertEqual(str, "Yebo-Yes-Nameed", "Get string similar path", t)
+	AssertEqual(str, "\"Yebo-Yes-Nameed\"", "Get string similar path", t)
 
 	rb, _ = NewRequestBuilder(RootPath + "types-service/string/true/5" + xrefStr + "&name=Nameed")
 	rb.AddCookie(cook)
 	res, _ = rb.Get(&str, 200)
 	AssertEqual(res.StatusCode, 200, "Get string ResponseCode", t)
-	AssertEqual(str, "Hellotrue5/Nameed0", "Get string", t)
+	AssertEqual(str, "\"Hellotrue5/Nameed0\"", "Get string", t)
 
 	rb, _ = NewRequestBuilder(RootPath + "types-service/string/true/5" + xrefStr + "&flow=6")
 	rb.AddCookie(cook)
 	res, _ = rb.Get(&str, 200)
 	AssertEqual(res.StatusCode, 200, "Get string ResponseCode", t)
-	AssertEqual(str, "Hellotrue5/6", "Get string", t)
+	AssertEqual(str, "\"Hellotrue5/6\"", "Get string", t)
 
 	rb, _ = NewRequestBuilder(RootPath + "types-service/string/true/5" + xrefStr + "&flow=")
 	rb.AddCookie(cook)
 	res, _ = rb.Get(&str, 200)
 	AssertEqual(res.StatusCode, 200, "Get string ResponseCode", t)
-	AssertEqual(str, "Hellotrue5/0", "Get string", t)
+	AssertEqual(str, "\"Hellotrue5/0\"", "Get string", t)
 
 	rb, _ = NewRequestBuilder(RootPath + "types-service/string/true/5" + xrefStr + "&flow")
 	rb.AddCookie(cook)
 	res, _ = rb.Get(&str, 200)
 	AssertEqual(res.StatusCode, 200, "Get string ResponseCode", t)
-	AssertEqual(str, "Hellotrue5/0", "Get string", t)
+	AssertEqual(str, "\"Hellotrue5/0\"", "Get string", t)
 }
 
 func getInteger(t *testing.T) {

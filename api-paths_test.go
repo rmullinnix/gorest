@@ -82,6 +82,6 @@ func getMixed(t *testing.T) {
 
 	res, _ := rb.Get(&str, 200)
 	AssertEqual(res.StatusCode, 200, "Get string ResponseCode", t)
-	AssertEqual(str, "Hello", "Get getMixed", t)
+	AssertEqual(str, "\"Hello\"", "Get getMixed", t)
 
 }

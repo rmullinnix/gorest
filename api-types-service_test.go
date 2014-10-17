@@ -128,7 +128,7 @@ func (serv TypesService) GetVarArgsString(v ...string) string {
 	return str + "End"
 }
 func (serv TypesService) PostVarArgs(name string, varArgs ...int) {
-	if name == "hello" && varArgs[0] == 5 && varArgs[1] == 24567 {
+	if name == "\"hello\"" && varArgs[0] == 5 && varArgs[1] == 24567 {
 		serv.ResponseBuilder().SetResponseCode(200)
 	} else {
 		serv.ResponseBuilder().SetResponseCode(400)
@@ -174,7 +174,7 @@ func (serv TypesService) GetArrayStruct(FName string, Age int) []User {
 }
 
 func (serv TypesService) PostString(posted string, Bool bool, Int int) {
-	if posted == "Hello" && Bool && Int == 5 {
+	if posted == "\"Hello\"" && Bool && Int == 5 {
 		serv.ResponseBuilder().SetResponseCode(200)
 	} else {
 		serv.ResponseBuilder().SetResponseCode(400)

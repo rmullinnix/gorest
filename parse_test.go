@@ -47,7 +47,7 @@ func TestInterfaceToBytes(t *testing.T) {
 	AssertEqual(readerToString(reader, t), "12345", "Integer marshall", t)
 
 	reader, _ = InterfaceToBytes("Hello", "application/json")
-	AssertEqual(readerToString(reader, t), "Hello", "String marshall", t)
+	AssertEqual(readerToString(reader, t), "\"Hello\"", "String marshall", t)
 
 	reader, _ = InterfaceToBytes(true, "application/json")
 	AssertEqual(readerToString(reader, t), "true", "Bool marshall", t)

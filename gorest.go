@@ -81,6 +81,7 @@ const (
 	DELETE  = "DELETE"
 	HEAD    = "HEAD"
 	OPTIONS = "OPTIONS"
+	PATCH   = "PATCH"
 )
 
 type endPointStruct struct {
@@ -94,7 +95,6 @@ type endPointStruct struct {
 	queryParams          []param
 	signitureLen         int
 	paramLen             int
-	inputMime            string
 	outputType           string
 	outputTypeIsArray    bool
 	outputTypeIsMap      bool
@@ -110,11 +110,6 @@ type endPointStruct struct {
 	allowGzip 	     int // 0 false, 1 true, 2 unitialized
 }
 
-type endPointSignature struct {
-	RequestMethod string
-	Signature     string
-}
-
 type restStatus struct {
 	httpCode int
 	reason   string //Especially for code in range 4XX to 5XX
@@ -127,8 +122,8 @@ func (err restStatus) String() string {
 
 type serviceMetaData struct {
 	template     interface{}
-	consumesMime string // change to array / support multiple based on Content-Type header
-	producesMime []string // change to array / support multiple based on Accept header
+	consumesMime string
+	producesMime []string
 	root         string
 	realm        string
 	allowGzip    bool
@@ -139,8 +134,8 @@ var handlerInitialised bool
 
 type manager struct {
 	root		string
-	serviceTypes map[string]serviceMetaData
-	endpoints    map[string]endPointStruct
+	serviceTypes 	map[string]serviceMetaData
+	endpoints    	map[string]endPointStruct
 	swaggerEP	string
 }
 
@@ -283,7 +278,6 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 						responseCode = getDefaultResponseCode(ep.requestMethod)
 					} else {
 						if !ctx.dataHasBeenWritten {
-		
 							responseCode = ctx.responseCode
 						}
 					}
@@ -310,15 +304,20 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				if ep.allowGzip == 1 && strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 					w.Header().Set("Content-Encoding", "gzip")
 					w.WriteHeader(responseCode)
+					ctx.dataHasBeenWritten = true
 					gzipWriter := gzip.NewWriter(w)
 					defer gzipWriter.Close()
 					io.Copy(gzipWriter, header)
 				} else {
 					w.WriteHeader(responseCode)
+					ctx.dataHasBeenWritten = true
 					io.Copy(w, header)
 				}
 			} else {
-				w.WriteHeader(responseCode)
+				if !ctx.dataHasBeenWritten {
+					w.WriteHeader(responseCode)
+					ctx.dataHasBeenWritten = true
+				}
 			}
 
 
@@ -330,6 +329,7 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			logger.SetResponseCode(state.httpCode)
 			w.WriteHeader(state.httpCode)
+			ctx.dataHasBeenWritten = true
 			w.Write([]byte(state.reason))
 		}
 	} else {

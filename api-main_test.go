@@ -26,10 +26,11 @@
 package gorest
 
 import (
-	"io/ioutil"
+//	"io/ioutil"
 	"log"
 	"net/http"
 	//"net/http/httptest"
+	"github.com/rmullinnix/logger"
 	"runtime"
 	"testing"
 )
@@ -41,8 +42,9 @@ var globalTestScope *testing.T //This is used to do Asserts inside the service i
 func TestInit(t *testing.T) {
 	runtime.GOMAXPROCS(runtime.NumCPU() * 4)
 	globalTestScope = t
+	logger.Init("error")
 	log.Println("Starting tests")
-	log.SetOutput(ioutil.Discard) //Toggle comment in-out to see log output
+//	log.SetOutput(ioutil.Discard) //Toggle comment in-out to see log output
 
 	RegisterRealmAuthorizer("testing", TestingAuthorizer)
 	RegisterServiceOnPath(MUX_ROOT, new(TypesService))
@@ -73,11 +75,11 @@ func TestStress(t *testing.T) {
 }
 
 func TestServiceMeta(t *testing.T) {
-	if meta, found := restManager.serviceTypes["code.google.com/p/gorest/TypesService"]; !found {
+	if meta, found := restManager.serviceTypes["github.com/rmullinnix/gorest/TypesService"]; !found {
 		t.Error("Service Not registered correctly")
 	} else {
 		AssertEqual(meta.consumesMime, "application/json", "Service consumesMime", t)
-		AssertEqual(meta.producesMime, "application/json", "Service producesMime", t)
+		AssertEqual(meta.producesMime[0], "application/json", "Service producesMime", t)
 		AssertEqual(meta.root, MUX_ROOT+"types-service/", "Service root", t)
 
 	}
