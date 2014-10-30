@@ -29,6 +29,8 @@ package gorest
 import (
 	"strings"
 	"reflect"
+	"regexp"
+	"strconv"
 	"unicode"
 )
 
@@ -84,11 +86,12 @@ func sirenDecorator(response interface{}, entmap map[string]entity) (interface{}
 		case reflect.Struct:
 			// Properties - not sub-entity items
 			// Any sub-entities (struct or array), placed in Entities
-			hm_resp.Properties, hm_resp.Entities = stripSubentities(v, entmap)
+			props, ents := stripSubentities(v, entmap)
+			hm_resp.Properties = props
+			hm_resp.Entities = ents
 			hm_resp.Class = reflect.TypeOf(response).Name()
-			key := v.FieldByName(entmap[hm_resp.Class].key)
-			hm_resp.Actions = sirenActions(entmap[hm_resp.Class], key.String())
-			hm_resp.Links = sirenLinks(entmap[hm_resp.Class], key.String())
+			hm_resp.Actions = sirenActions(entmap[hm_resp.Class], props)
+			hm_resp.Links = sirenLinks(entmap[hm_resp.Class], props)
 		case reflect.Slice, reflect.Array, reflect.Map:
 			hm_resp.Entities, hm_resp.Class = getEntityList(v, entmap)
 		default:
@@ -99,30 +102,26 @@ func sirenDecorator(response interface{}, entmap map[string]entity) (interface{}
 	return hm_resp
 }
 
-func sirenLinks(ent entity, keyval string) []SLink {
+func sirenLinks(ent entity, props map[string]interface{}) []SLink {
 	lnklist := make([]SLink, len(ent.links))
 	i := 0
 	
 	for _, e_lnk := range ent.links {
 		lnk := SLink{"", "", e_lnk.rel, e_lnk.href, ""}
-		if strings.Contains(lnk.Href, "{key}") {
-			lnk.Href = strings.Replace(lnk.Href, "{key}", keyval, 1)
-		}
+		lnk.Href = updatePath(lnk.Href, props)
 		lnklist[i] = lnk
 		i++
 	}
 	return lnklist
 }
 
-func sirenActions(ent entity, keyval string) []SAction {
+func sirenActions(ent entity, props map[string]interface{}) []SAction {
 	actlist := make([]SAction, len(ent.actions))
 	i := 0
 	
 	for _, e_act := range ent.actions {
 		act := SAction{e_act.name, e_act.class, e_act.method, e_act.href, "", ""}
-		if strings.Contains(act.Href, "{key}") {
-			act.Href = strings.Replace(act.Href, "{key}", keyval, 1)
-		}
+		act.Href = updatePath(act.Href, props)
 		actlist[i] = act
 		i++
 	}
@@ -196,17 +195,68 @@ func getEntity(sub bool, vItem reflect.Value, entmap map[string]entity) SEntity 
 			}
 
 			lnk := SLink{"", "", subent.links[j].rel, subent.links[j].href, ""}
-			if strings.Contains(lnk.Href, "{key}") {
-				keyval := vItem.FieldByName(subent.key)
-//				if !val.IsNil() {
-					lnk.Href = strings.Replace(lnk.Href, "{key}", keyval.String(), 1)
-//				}
+
+			typ := reflect.TypeOf(item.Properties)
+			val := reflect.ValueOf(item.Properties)
+			props := make(map[string]interface{}, typ.NumField())
+			for i := 0; i < typ.NumField(); i++ {
+				valf := val.Field(i)
+				props[typ.Field(i).Name] = valf.Interface()
 			}
+
+			lnk.Href = updatePath(lnk.Href, props)
 
 			item.Links = append(item.Links, lnk)
 		}
 	}
 	return item
+}
+
+func updatePath(path string, props map[string]interface{}) string {
+
+	reg := regexp.MustCompile("{[^}]+}")
+	parts := reg.FindAllString(path, -1)
+
+	for _, str1 := range parts {
+		if strings.HasPrefix(str1, "{") && strings.HasSuffix(str1, "}") {
+			
+			str2 := str1[1:len(str1) - 1]
+			if pos := strings.IndexAny(str2, "+-"); pos > -1  {
+				if item, found := props[str2[:pos]]; found {
+					value := reflect.ValueOf(item).Int()
+					val2, _ := strconv.Atoi(str2[pos+1:])
+					if strings.Contains(str2, "+")  {
+						value = value + int64(val2)
+					} else {
+						value = value - int64(val2)
+					}
+					path = strings.Replace(path, str1, strconv.FormatInt(value, 10), 1)
+				}
+			} else if item, found := props[str2]; found {
+				path = strings.Replace(path, str1, getValueString(item), 1)
+			}
+		}
+	}
+
+	return path
+}
+
+func getValueString(item interface{}) string {
+	value := "<invalid>"
+	vItem := reflect.ValueOf(item)
+	switch vItem.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			value = strconv.FormatInt(vItem.Int(), 10)
+		case reflect.Bool:
+			value = strconv.FormatBool(vItem.Bool())
+		case reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			value = strconv.FormatUint(vItem.Uint(), 10)
+		case reflect.Float32:
+			value = strconv.FormatFloat(vItem.Float(), 'e', -1, 32)
+		case reflect.String:
+			value = strconv.FormatFloat(vItem.Float(), 'e', -1, 64)
+	}
+	return value
 }
 
 // creates a new Siren Decorator 

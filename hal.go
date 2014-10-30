@@ -66,9 +66,9 @@ func halDecorator(response interface{}, entmap map[string]entity) (interface{}) 
 			// Properties - not sub-entity items
 			// Any sub-entities (struct or array), placed in Embedded
 			class := reflect.TypeOf(response).Name()
-			key := v.FieldByName(entmap[class].key)
+			key := "" //v.FieldByName(entmap[class].key)
 
-			halResourceLinks(links, entmap[class], key.String(), false)
+			halResourceLinks(links, entmap[class], key, false)
 			halDocumentCuries(links, entmap[class])
 
 			hm_resp["_links"] = links
@@ -161,9 +161,8 @@ func getResource(embedded bool, in reflect.Value, entmap map[string]entity) map[
 	resp := make(map[string]interface{}, 0)
 	links := make(map[string]interface{}, 0)
 	if subent, ok := entmap[in.Type().Name()]; ok {
-		class := reflect.TypeOf(in).Name()
-		keyval := in.FieldByName(entmap[class].key)
-		halResourceLinks(links, subent, keyval.String(), embedded)
+		// class := reflect.TypeOf(in).Name()
+		halResourceLinks(links, subent, "", embedded)
 	}
 	if len(links) > 0 {
 		resp["_links"] = links

@@ -165,6 +165,7 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 		op.Type = ep.outputType
 		op.Parameters = make([]Parameter, len(ep.params) + len(ep.queryParams))
 		op.Authorizations = make([]Authorization, 0)
+		pnum := 0
 		for j := 0; j < len(ep.params); j++ {
 			var par		Parameter
 
@@ -175,10 +176,11 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 			par.Required = true
 			par.AllowMultiple = false
 
-			op.Parameters[j] = par
+			op.Parameters[pnum] = par
+			pnum++
 		}
 
-		for j := len(ep.params); j < len(ep.params) + len(ep.queryParams); j++ {
+		for j := 0; j < len(ep.queryParams); j++ {
 			var par		Parameter
 
 			par.ParamType = "query"
@@ -188,7 +190,8 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 			par.Required = false
 			par.AllowMultiple = false
 
-			op.Parameters[j] = par
+			op.Parameters[pnum] = par
+			pnum++
 		}
 
 		if ep.postdataType != "" {

@@ -38,7 +38,6 @@ var decorators map[string]*Decorator
 type entity struct {
 	class		string
 	title		string
-	key		string
 	typ		string
 	href		string
 	links		map[int]link
@@ -169,10 +168,6 @@ func prepEntityData(tags reflect.StructTag) entity {
 
 	if tag = tags.Get("title"); tag != "" {
 		ent.title = tag
-	}
-
-	if tag = tags.Get("key"); tag != "" {
-		ent.key = tag
 	}
 
 	if tag = tags.Get("href"); tag != "" {

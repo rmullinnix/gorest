@@ -225,12 +225,39 @@ func RegisterServiceOnPath(root string, h interface{}) {
 
 //ServeHTTP dispatches the request to the handler whose pattern most closely matches the request URL.
 func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-
 	url_, err := url.QueryUnescape(r.URL.RequestURI())
 
 	message := "url: " + url_ + " method: " + r.Method + " "
-
 	defer logger.Elapsed(time.Now(), message)
+
+	if err != nil {
+		logger.Warning.Println("Could not serve page: ", r.Method, r.URL.RequestURI(), "Error:", err)
+		logger.SetResponseCode(400)
+		w.WriteHeader(400)
+		w.Write([]byte("Client sent bad request."))
+		return
+	}
+
+	if r.Header.Get("Origin") != "" {
+		if r.Method == OPTIONS {
+			logger.Error.Println("CORS pre-flight OPTONS")
+			w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			w.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(""))
+			return
+		}
+	}
+
+	if url_ == _manager().swaggerEP {
+		basePath := "http://" + r.Host + "/"
+		swagDoc := buildSwaggerDoc(basePath)
+		data, _ := json.Marshal(swagDoc)
+		logger.SetResponseCode(http.StatusOK)
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
+		return
+	} 
 
 	authkey := r.Header.Get("Authorization")
 	if len(authkey) > 0 {
@@ -241,24 +268,7 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err != nil {
-		logger.Warning.Println("Could not serve page: ", r.Method, r.URL.RequestURI(), "Error:", err)
-		logger.SetResponseCode(400)
-		w.WriteHeader(400)
-		w.Write([]byte("Client sent bad request."))
-		return
-	}
-
-	if url_ == _manager().swaggerEP {
-		basePath := "http://" + r.Host + "/"
-		swagDoc := buildSwaggerDoc(basePath)
-		data, _ := json.Marshal(swagDoc)
-		logger.SetResponseCode(http.StatusOK)
-		w.WriteHeader(http.StatusOK)
-		w.Write(data)
-
-	} else if ep, args, queryArgs, _, found := getEndPointByUrl(r.Method, url_); found {
-
+	if ep, args, queryArgs, _, found := getEndPointByUrl(r.Method, url_); found {
 		ctx := new(Context)
 		ctx.writer = w
 		ctx.request = r
