@@ -147,7 +147,7 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 		md.allowGzip = false
 	}
 
-	md.template = i
+	md.Template = i
 	return *md
 }
 

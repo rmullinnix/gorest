@@ -102,7 +102,7 @@ type EndPointStruct struct {
 	postdataTypeIsMap    bool
 	isVariableLength     bool
 	parentTypeName       string
-	methodNumberInParent int
+	MethodNumberInParent int
 	role                 string
 	overrideProducesMime string // overrides the produces mime type
 	overrideConsumesMime string // overrides the produces mime type
@@ -120,7 +120,7 @@ func (err restStatus) String() string {
 }
 
 type ServiceMetaData struct {
-	template     interface{}
+	Template     interface{}
 	ConsumesMime string
 	ProducesMime []string
 	Root         string
@@ -250,7 +250,8 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if url_ == _manager().swaggerEP {
 		basePath := "http://" + r.Host + "/"
-		swagDoc := buildSwaggerDoc(basePath, this.serviceTypes, this.endpoints)
+		doc := GetDocumentor("swagger")
+		swagDoc := doc.Document(basePath, this.serviceTypes, this.endpoints)
 		data, _ := json.Marshal(swagDoc)
 		logger.SetResponseCode(http.StatusOK)
 		w.WriteHeader(http.StatusOK)
@@ -329,7 +330,7 @@ func _manager() *manager {
 	return restManager
 }
 
-func handle() manager {
+func Handle() manager {
 	return *restManager
 }
 

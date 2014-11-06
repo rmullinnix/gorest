@@ -1,6 +1,7 @@
-package gorest
+package swagger
 
 import (
+	"github.com/rmullinnix/gorest"
 	"strings"
 	"reflect"
 	"regexp"
@@ -104,7 +105,7 @@ func _spec() *SwaggerAPI12 {
 	return spec
 }
 
-func buildSwaggerDoc(basePath string, svcTypes map[string]ServiceMetaData, endPoints map[string]EndPointStruct) SwaggerAPI12 {
+func swaggerDocumentor(basePath string, svcTypes map[string]gorest.ServiceMetaData, endPoints map[string]gorest.EndPointStruct) interface{} {
 	spec = newSpec(basePath, len(svcTypes), len(endPoints))
 
 	x := 0
@@ -113,7 +114,7 @@ func buildSwaggerDoc(basePath string, svcTypes map[string]ServiceMetaData, endPo
 		spec.Produces = append(spec.Produces, st.ProducesMime...)
 		spec.Consumes[x] = st.ConsumesMime
 	
-        	svcInt = reflect.TypeOf(st.template)
+        	svcInt = reflect.TypeOf(st.Template)
 
 	        if svcInt.Kind() == reflect.Ptr {
 	                svcInt = svcInt.Elem()
@@ -211,7 +212,7 @@ func buildSwaggerDoc(basePath string, svcTypes map[string]ServiceMetaData, endPo
 		spec.APIs[x] = api
 		x++
 
-		methType := svcInt.Method(ep.methodNumberInParent).Type
+		methType := svcInt.Method(ep.MethodNumberInParent).Type
 		// skip the fuction class pointer
 		for i := 1; i < methType.NumIn(); i++ {
 			inType := methType.In(i)
@@ -400,4 +401,10 @@ func populatePropertyArray(sf reflect.StructField) (PropertyArray, bool) {
         }
 
 	return prop, required
+}
+
+// creates a new Swagger Documentor
+func NewSwaggerDocumentor() *gorest.Documentor {
+        doc := gorest.Documentor{swaggerDocumentor}
+        return &doc
 }

@@ -3,6 +3,7 @@ package main
 
 import (
 	"github.com/rmullinnix/gorest"
+	"github.com/rmullinnix/gorest/swagger"
 	"github.com/rmullinnix/logger"
 	"net/http"
 	"strconv"
@@ -57,6 +58,7 @@ func main() {
 
 	logger.Init("info")
 
+	gorest.RegisterDocumentor("swagger", swagger.NewSwaggerDocumentor())
 	gorest.RegisterService(new(ReferenceService))
 	gorest.RegisterEntity(new(StateHypermedia))
 	gorest.RegisterEntity(new(StatesHypermedia))

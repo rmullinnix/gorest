@@ -151,7 +151,7 @@ func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName stri
 				logger.Error.Panicln("Parameter list not matching. " + panicMethNotFound(methFound, ep, t, f, methodName))
 			}
 		}
-		ep.methodNumberInParent = methodNumberInParent
+		ep.MethodNumberInParent = methodNumberInParent
 		_manager().addEndPoint(ep)
 		logger.Info.Println("Registerd service:", t.Name(), " endpoint:", ep.RequestMethod, ep.Signiture)
 	}
@@ -328,7 +328,7 @@ func panicMethNotFound(methFound bool, ep EndPointStruct, t reflect.Type, f refl
 func prepareServe(context *Context, ep EndPointStruct, args map[string]string, queryArgs map[string]string) (*ResponseBuilder) {
 	servMeta := _manager().getType(ep.parentTypeName)
 
-	t := reflect.TypeOf(servMeta.template).Elem() //Get the type first, and it's pointer so Elem(), we created service with new (why??)
+	t := reflect.TypeOf(servMeta.Template).Elem() //Get the type first, and it's pointer so Elem(), we created service with new (why??)
 	servVal := reflect.New(t).Elem() //Key to creating new instance of service, from the type above
 
 	//Set the Context; the user can get the context from her services function param
@@ -346,7 +346,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 
 	arrArgs := make([]reflect.Value, 0)
 
-	targetMethod := servVal.Type().Method(ep.methodNumberInParent)
+	targetMethod := servVal.Type().Method(ep.MethodNumberInParent)
 	mime := servMeta.ConsumesMime
 	if ep.overrideConsumesMime != "" {
 		mime = ep.overrideConsumesMime
@@ -434,9 +434,9 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 		//Now call the actual method with the data
 		var ret []reflect.Value
 		if ep.isVariableLength {
-			ret = servVal.Method(ep.methodNumberInParent).CallSlice(arrArgs)
+			ret = servVal.Method(ep.MethodNumberInParent).CallSlice(arrArgs)
 		} else {
-			ret = servVal.Method(ep.methodNumberInParent).Call(arrArgs)
+			ret = servVal.Method(ep.MethodNumberInParent).Call(arrArgs)
 		}
 
 		if len(ret) == 1 { //This is when we have just called a GET
