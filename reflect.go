@@ -112,13 +112,13 @@ func registerService(root string, h interface{}) {
 	panic(ERROR_INVALID_INTERFACE)
 }
 
-func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName string, serviceRoot serviceMetaData) {
+func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName string, serviceRoot ServiceMetaData) {
 
 	if f.Name != "RestService" && f.Type.Name() == "EndPoint" { //TODO: Proper type checking, not by name
 		temp := strings.Join(strings.Fields(string(f.Tag)), " ")
-		ep := makeEndPointStruct(reflect.StructTag(temp), serviceRoot.root)
+		ep := makeEndPointStruct(reflect.StructTag(temp), serviceRoot.Root)
 		ep.parentTypeName = typeFullName
-		ep.name = f.Name
+		ep.Name = f.Name
 		// override the endpoint with our default value for gzip
 		if ep.allowGzip == 2 {
 			if !serviceRoot.allowGzip {
@@ -153,17 +153,17 @@ func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName stri
 		}
 		ep.methodNumberInParent = methodNumberInParent
 		_manager().addEndPoint(ep)
-		logger.Info.Println("Registerd service:", t.Name(), " endpoint:", ep.requestMethod, ep.signiture)
+		logger.Info.Println("Registerd service:", t.Name(), " endpoint:", ep.RequestMethod, ep.Signiture)
 	}
 }
 
-func isLegalForRequestType(methType reflect.Type, ep endPointStruct) (cool bool) {
+func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool) {
 	cool = true
 
 	numInputIgnore := 0
 	numOut := 0
 
-	switch ep.requestMethod {
+	switch ep.RequestMethod {
 	case POST, PUT:
 		{
 			numInputIgnore = 2 //The first param is the struct, the second the posted object
@@ -182,7 +182,7 @@ func isLegalForRequestType(methType reflect.Type, ep endPointStruct) (cool bool)
 
 	}
 
-	if (methType.NumIn() - numInputIgnore) != (ep.paramLen + len(ep.queryParams)) {
+	if (methType.NumIn() - numInputIgnore) != (ep.paramLen + len(ep.QueryParams)) {
 		cool = false
 	} else if methType.NumOut() != numOut {
 		cool = false
@@ -207,7 +207,7 @@ func isLegalForRequestType(methType reflect.Type, ep endPointStruct) (cool bool)
 				}
 			}
 
-			if !typeNamesEqual(methVal, ep.postdataType) {
+			if !typeNamesEqual(methVal, ep.PostdataType) {
 				cool = false
 				return
 			}
@@ -215,19 +215,19 @@ func isLegalForRequestType(methType reflect.Type, ep endPointStruct) (cool bool)
 		//Check the rest of input path param types
 		i := numInputIgnore
 		if ep.isVariableLength {
-			if methType.NumIn() != numInputIgnore+1+len(ep.queryParams) {
+			if methType.NumIn() != numInputIgnore+1+len(ep.QueryParams) {
 				cool = false
 			}
 			cool = false
 			if methType.In(i).Kind() == reflect.Slice { //Variable args Slice
-				if typeNamesEqual(methType.In(i).Elem(), ep.params[0].typeName) { //Check the correct type for the Slice
+				if typeNamesEqual(methType.In(i).Elem(), ep.Params[0].TypeName) { //Check the correct type for the Slice
 					cool = true
 				}
 			}
 
 		} else {
 			for ; i < methType.NumIn() && (i-numInputIgnore < ep.paramLen); i++ {
-				if !typeNamesEqual(methType.In(i), ep.params[i-numInputIgnore].typeName) {
+				if !typeNamesEqual(methType.In(i), ep.Params[i-numInputIgnore].TypeName) {
 					cool = false
 					break
 				}
@@ -235,8 +235,8 @@ func isLegalForRequestType(methType reflect.Type, ep endPointStruct) (cool bool)
 		}
 
 		//Check the input Query param types
-		for j := 0; i < methType.NumIn() && (j < len(ep.queryParams)); i++ {
-			if !typeNamesEqual(methType.In(i), ep.queryParams[j].typeName) {
+		for j := 0; i < methType.NumIn() && (j < len(ep.QueryParams)); i++ {
+			if !typeNamesEqual(methType.In(i), ep.QueryParams[j].TypeName) {
 				cool = false
 				break
 			}
@@ -262,7 +262,7 @@ func isLegalForRequestType(methType reflect.Type, ep endPointStruct) (cool bool)
 				}
 			}
 
-			if !typeNamesEqual(methVal, ep.outputType) {
+			if !typeNamesEqual(methVal, ep.OutputType) {
 				cool = false
 			}
 		}
@@ -279,7 +279,7 @@ func typeNamesEqual(methVal reflect.Type, name2 string) bool {
 	return fullName == name2
 }
 
-func panicMethNotFound(methFound bool, ep endPointStruct, t reflect.Type, f reflect.StructField, methodName string) string {
+func panicMethNotFound(methFound bool, ep EndPointStruct, t reflect.Type, f reflect.StructField, methodName string) string {
 
 	var str string
 	isArr := ""
@@ -296,36 +296,36 @@ func panicMethNotFound(methFound bool, ep endPointStruct, t reflect.Type, f refl
 	if ep.postdataTypeIsMap {
 		postIsArr = "map[string]"
 	}
-	var suffix string = "(" + isArr + ep.outputType + ")# with one(" + isArr + ep.outputType + ") return parameter."
-	if ep.requestMethod == POST || ep.requestMethod == PUT {
-		str = "PostData " + postIsArr + ep.postdataType
+	var suffix string = "(" + isArr + ep.OutputType + ")# with one(" + isArr + ep.OutputType + ") return parameter."
+	if ep.RequestMethod == POST || ep.RequestMethod == PUT {
+		str = "PostData " + postIsArr + ep.PostdataType
 		if ep.paramLen > 0 {
 			str += ", "
 		}
 
 	}
-	if ep.requestMethod == POST || ep.requestMethod == PUT || ep.requestMethod == DELETE {
+	if ep.RequestMethod == POST || ep.RequestMethod == PUT || ep.RequestMethod == DELETE {
 		suffix = "# with no return parameters."
 	}
 	if ep.isVariableLength {
-		str += "varArgs ..." + ep.params[0].typeName + ","
+		str += "varArgs ..." + ep.Params[0].TypeName + ","
 	} else {
 		for i := 0; i < ep.paramLen; i++ {
-			str += ep.params[i].name + " " + ep.params[i].typeName + ","
+			str += ep.Params[i].Name + " " + ep.Params[i].TypeName + ","
 		}
 	}
 
-	for i := 0; i < len(ep.queryParams); i++ {
-		str += ep.queryParams[i].name + " " + ep.queryParams[i].typeName + ","
+	for i := 0; i < len(ep.QueryParams); i++ {
+		str += ep.QueryParams[i].Name + " " + ep.QueryParams[i].TypeName + ","
 	}
 	str = strings.TrimRight(str, ",")
-	return "No matching Method found for EndPoint:[" + f.Name + "],type:[" + ep.requestMethod + "] . Expecting: #func(serv " + t.Name() + ") " + methodName + "(" + str + ")" + suffix
+	return "No matching Method found for EndPoint:[" + f.Name + "],type:[" + ep.RequestMethod + "] . Expecting: #func(serv " + t.Name() + ") " + methodName + "(" + str + ")" + suffix
 }
 
 //Runtime functions below:
 //-----------------------------------------------------------------------------------------------------------------
 
-func prepareServe(context *Context, ep endPointStruct, args map[string]string, queryArgs map[string]string) (*ResponseBuilder) {
+func prepareServe(context *Context, ep EndPointStruct, args map[string]string, queryArgs map[string]string) (*ResponseBuilder) {
 	servMeta := _manager().getType(ep.parentTypeName)
 
 	t := reflect.TypeOf(servMeta.template).Elem() //Get the type first, and it's pointer so Elem(), we created service with new (why??)
@@ -347,12 +347,12 @@ func prepareServe(context *Context, ep endPointStruct, args map[string]string, q
 	arrArgs := make([]reflect.Value, 0)
 
 	targetMethod := servVal.Type().Method(ep.methodNumberInParent)
-	mime := servMeta.consumesMime
+	mime := servMeta.ConsumesMime
 	if ep.overrideConsumesMime != "" {
 		mime = ep.overrideConsumesMime
 	}
 	//For POST and PUT, make and add the first "postdata" argument to the argument list
-	if ep.requestMethod == POST || ep.requestMethod == PUT {
+	if ep.RequestMethod == POST || ep.RequestMethod == PUT {
 
 		//Get postdata here
 		//TODO: Also check if this is a multipart post and handle as required.
@@ -373,7 +373,7 @@ func prepareServe(context *Context, ep endPointStruct, args map[string]string, q
 
 	if len(args) == ep.paramLen || (ep.isVariableLength && ep.paramLen == 1) {
 		startIndex := 1
-		if ep.requestMethod == POST || ep.requestMethod == PUT {
+		if ep.RequestMethod == POST || ep.RequestMethod == PUT {
 			startIndex = 2
 		}
 
@@ -394,9 +394,9 @@ func prepareServe(context *Context, ep endPointStruct, args map[string]string, q
 		} else {
 			//Now add the rest of the PATH arguments to the argument list and then call the method
 			// GET and DELETE will only need these arguments, not the "postdata" one in their method calls
-			for _, par := range ep.params {
+			for _, par := range ep.Params {
 				dat := ""
-				if str, found := args[par.name]; found {
+				if str, found := args[par.Name]; found {
 					dat = str
 				}
 
@@ -414,9 +414,9 @@ func prepareServe(context *Context, ep endPointStruct, args map[string]string, q
 
 		//Query arguments are not compulsory on query, so the caller may ommit them, in which case we send a zero value f its type to the method.
 		//Also they may be sent through in any order.
-		for _, par := range ep.queryParams {
+		for _, par := range ep.QueryParams {
 			dat := ""
-			if str, found := queryArgs[par.name]; found {
+			if str, found := queryArgs[par.Name]; found {
 				dat = str
 			}
 
@@ -445,11 +445,11 @@ func prepareServe(context *Context, ep endPointStruct, args map[string]string, q
 			accept := context.request.Header.Get("Accept")
 
 			if mimeType = ep.overrideProducesMime; mimeType == "" {
-				mimeType = servMeta.producesMime[0]
+				mimeType = servMeta.ProducesMime[0]
 				if len(accept) > 0 {
-				 	for i := 0; i < len(servMeta.producesMime); i++ {
-						if strings.Contains(accept, servMeta.producesMime[i]) {
-							mimeType = servMeta.producesMime[i]
+				 	for i := 0; i < len(servMeta.ProducesMime); i++ {
+						if strings.Contains(accept, servMeta.ProducesMime[i]) {
+							mimeType = servMeta.ProducesMime[i]
 							break
 						}
 					}

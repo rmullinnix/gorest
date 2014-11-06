@@ -65,13 +65,13 @@ import (
 )
 
 type argumentData struct {
-	parameter param
+	parameter Param
 	data      string
 }
-type param struct {
+type Param struct {
 	positionInPath int
-	name           string
-	typeName       string
+	Name           string
+	TypeName       string
 }
 
 var aLLOWED_PAR_TYPES = []string{"string", "int", "int32", "int64", "bool", "float32", "float64"}
@@ -89,39 +89,39 @@ const (
 	errorString_UniqueRoot = "Variable length endpoints can only be mounted on a unique root. Root already used: %s <> %s"
 	errorString_Gzip = "Service has invalid gzip value. Defaulting to off settings! %s"
 )
-func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, name string) serviceMetaData {
-	md := new(serviceMetaData)
+func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, name string) ServiceMetaData {
+	md := new(ServiceMetaData)
 
 	var tag		string
 
 	if tag = tags.Get("root"); tag != "" {
-		md.root = tag
+		md.Root = tag
 	}
 	if root != "" {
-		md.root = root + md.root
+		md.Root = root + md.Root
 	}
-	logger.Info.Println("All EndPoints for service [", name, "] , registered under root path: ", md.root)
+	logger.Info.Println("All EndPoints for service [", name, "] , registered under root path: ", md.Root)
 
 	if tag = tags.Get("consumes"); tag == "" {
 		tag = Application_Json // Default
 	}
-	md.consumesMime = tag
+	md.ConsumesMime = tag
 
 	if !addMimeType(tag) {
 		logger.Error.Fatalf(errorString_MarshalMimeType, tag)
 	}
 
-	md.producesMime = make([]string, 0)
+	md.ProducesMime = make([]string, 0)
 	if tag = tags.Get("produces"); tag == "" {
 		tag = Application_Json // Default
-		md.producesMime = append(md.producesMime, tag)
+		md.ProducesMime = append(md.ProducesMime, tag)
 	} else {
 		prods := strings.Split(tag, ",")
-		md.producesMime = append(md.producesMime, prods...)
+		md.ProducesMime = append(md.ProducesMime, prods...)
 	}
 
-	for i := 0; i < len(md.producesMime); i++ {
-		mimeType := md.producesMime[i]
+	for i := 0; i < len(md.ProducesMime); i++ {
+		mimeType := md.ProducesMime[i]
 		if !addMimeType(mimeType) {
 			logger.Error.Fatalf(errorString_MarshalMimeType, tag)
 		}
@@ -151,7 +151,7 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 	return *md
 }
 
-func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStruct {
+func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStruct {
 
 	methodMap := map[string]string {
 		"GET":		GET,
@@ -163,52 +163,52 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStru
 		"OPTIONS":	OPTIONS,
 	}
 
-	ms := new(endPointStruct)
+	ms := new(EndPointStruct)
 
 	if tag := tags.Get("method"); tag != "" {
 		ok := false
-		if ms.requestMethod, ok = methodMap[tag]; !ok {
+		if ms.RequestMethod, ok = methodMap[tag]; !ok {
 			logger.Error.Fatalf(errorString_UnknownMethod, tag)
 		}
 
 		if tag := tags.Get("path"); tag != "" {
 			serviceRoot = strings.TrimRight(serviceRoot, "/")
-			ms.signiture = serviceRoot + "/" + strings.Trim(tag, "/")
+			ms.Signiture = serviceRoot + "/" + strings.Trim(tag, "/")
 		} else {
 			logger.Error.Fatalln(errorString_EndpointDecl)
 		}
 
 		if tag := tags.Get("output"); tag != "" {
-			ms.outputType = tag
+			ms.OutputType = tag
 			if strings.HasPrefix(tag, "[]") { //Check for slice/array/list types.
 				ms.outputTypeIsArray = true
-				ms.outputType = ms.outputType[2:]
+				ms.OutputType = ms.OutputType[2:]
 			}
 			if strings.HasPrefix(tag, "map[") { //Check for map[string]. We only handle string keyed maps!!!
 
-				if ms.outputType[4:10] == "string" {
+				if ms.OutputType[4:10] == "string" {
 					ms.outputTypeIsMap = true
-					ms.outputType = ms.outputType[11:]
+					ms.OutputType = ms.OutputType[11:]
 				} else {
-					logger.Error.Fatalf(errorString_StringMap, "output", ms.signiture)
+					logger.Error.Fatalf(errorString_StringMap, "output", ms.Signiture)
 				}
 
 			}
 		}
 
 		if tag := tags.Get("postdata"); tag != "" {
-			ms.postdataType = tag
+			ms.PostdataType = tag
 			if strings.HasPrefix(tag, "[]") { //Check for slice/array/list types.
 				ms.postdataTypeIsArray = true
-				ms.postdataType = ms.postdataType[2:]
+				ms.PostdataType = ms.PostdataType[2:]
 			}
 			if strings.HasPrefix(tag, "map[") { //Check for map[string]. We only handle string keyed maps!!!
 
-				if ms.postdataType[4:10] == "string" {
+				if ms.PostdataType[4:10] == "string" {
 					ms.postdataTypeIsMap = true
-					ms.postdataType = ms.postdataType[11:]
+					ms.PostdataType = ms.PostdataType[11:]
 				} else {
-					logger.Error.Fatalf(errorString_StringMap, "postdata", ms.signiture)
+					logger.Error.Fatalf(errorString_StringMap, "postdata", ms.Signiture)
 				}
 
 			}
@@ -235,7 +235,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) endPointStru
 		if tag := tags.Get("gzip"); tag != "" {
 			b, err := strconv.ParseBool(tag)
 			if err != nil {
-				logger.Warning.Printf(errorString_Gzip, ms.name)
+				logger.Warning.Printf(errorString_Gzip, ms.Name)
 				ms.allowGzip = 2
 			} else if b {
 				ms.allowGzip = 1
@@ -276,37 +276,37 @@ func addMimeType(mimeType string) bool {
 	return true
 }
 
-func parseParams(e *endPointStruct) {
-	e.signiture = strings.Trim(e.signiture, "/")
-	e.params = make([]param, 0)
-	e.queryParams = make([]param, 0)
+func parseParams(e *EndPointStruct) {
+	e.Signiture = strings.Trim(e.Signiture, "/")
+	e.Params = make([]Param, 0)
+	e.QueryParams = make([]Param, 0)
 	e.nonParamPathPart = make(map[int]string, 0)
 
-	pathPart := e.signiture
+	pathPart := e.Signiture
 	queryPart := ""
 
-	if i := strings.Index(e.signiture, "?"); i != -1 {
+	if i := strings.Index(e.Signiture, "?"); i != -1 {
 
-		pathPart = e.signiture[:i]
+		pathPart = e.Signiture[:i]
 		//e.root = pathPart
 		pathPart = strings.TrimRight(pathPart, "/")
-		queryPart = e.signiture[i+1:]
+		queryPart = e.Signiture[i+1:]
 
 		//Extract Query Parameters
 
 		for pos, str1 := range strings.Split(queryPart, "&") {
 			if strings.HasPrefix(str1, "{") && strings.HasSuffix(str1, "}") {
-				parName, typeName := getVarTypePair(str1, e.signiture)
+				parName, typeName := getVarTypePair(str1, e.Signiture)
 
-				for _, par := range e.queryParams {
-					if par.name == parName {
-						logger.Error.Fatalln("Duplicate Query Parameter name(" + parName + ") in REST path: " + e.signiture)
+				for _, par := range e.QueryParams {
+					if par.Name == parName {
+						logger.Error.Fatalln("Duplicate Query Parameter name(" + parName + ") in REST path: " + e.Signiture)
 					}
 				}
-				//e.queryParams[len(e.queryParams)] = param{pos, parName, typeName}
-				e.queryParams = append(e.queryParams, param{pos, parName, typeName})
+				//e.QueryParams[len(e.QueryParams)] = Param{pos, parName, typeName}
+				e.QueryParams = append(e.QueryParams, Param{pos, parName, typeName})
 			} else {
-				logger.Error.Fatalln("Please check that your Query Parameters are configured correctly for endpoint: " + e.signiture)
+				logger.Error.Fatalln("Please check that your Query Parameters are configured correctly for endpoint: " + e.Signiture)
 			}
 		}
 	}
@@ -323,22 +323,22 @@ func parseParams(e *endPointStruct) {
 
 		if strings.HasPrefix(str1, "{") && strings.HasSuffix(str1, "}") { //This just ensures we re dealing with a varibale not normal path.
 
-			parName, typeName := getVarTypePair(str1, e.signiture)
+			parName, typeName := getVarTypePair(str1, e.Signiture)
 
 			if parName == "..." {
 				e.isVariableLength = true
-				parName, typeName := getVarTypePair(str1, e.signiture)
-				e.params = append(e.params, param{pos, parName, typeName})
+				parName, typeName := getVarTypePair(str1, e.Signiture)
+				e.Params = append(e.Params, Param{pos, parName, typeName})
 				e.paramLen++
 				break
 			}
-			for _, par := range e.params {
-				if par.name == parName {
-					logger.Error.Fatalln("Duplicate Path Parameter name(" + parName + ") in REST path: " + e.signiture)
+			for _, par := range e.Params {
+				if par.Name == parName {
+					logger.Error.Fatalln("Duplicate Path Parameter name(" + parName + ") in REST path: " + e.Signiture)
 				}
 			}
 
-			e.params = append(e.params, param{pos, parName, typeName})
+			e.Params = append(e.Params, Param{pos, parName, typeName})
 			e.paramLen++
 		} else {
 			e.nonParamPathPart[pos] = str1
@@ -353,13 +353,13 @@ func parseParams(e *endPointStruct) {
 	}
 
 	for key, ep := range _manager().endpoints {
-		if ep.root == e.root && ep.signitureLen == e.signitureLen && reflect.DeepEqual(ep.nonParamPathPart, e.nonParamPathPart) && ep.requestMethod == e.requestMethod {
-			logger.Error.Fatalln("Can not register two endpoints with same request-method(" + ep.requestMethod + ") and same signature: " + e.signiture + " VS " + ep.signiture)
+		if ep.root == e.root && ep.signitureLen == e.signitureLen && reflect.DeepEqual(ep.nonParamPathPart, e.nonParamPathPart) && ep.RequestMethod == e.RequestMethod {
+			logger.Error.Fatalln("Can not register two endpoints with same request-method(" + ep.RequestMethod + ") and same signature: " + e.Signiture + " VS " + ep.Signiture)
 		}
-		if ep.requestMethod == e.requestMethod && pathPart == key {
+		if ep.RequestMethod == e.RequestMethod && pathPart == key {
 			logger.Error.Fatalln("Endpoint already registered: " + pathPart)
 		}
-		if e.isVariableLength && (strings.Index(ep.root+"/", e.root+"/") == 0 || strings.Index(e.root+"/", ep.root+"/") == 0) && ep.requestMethod == e.requestMethod {
+		if e.isVariableLength && (strings.Index(ep.root+"/", e.root+"/") == 0 || strings.Index(e.root+"/", ep.root+"/") == 0) && ep.RequestMethod == e.RequestMethod {
 			logger.Error.Fatalln("Variable length endpoints can only be mounted on a unique root. Root already used: " + ep.root + " <> " + e.root)
 		}
 	}
@@ -391,7 +391,7 @@ func isAllowedParamType(typeName string) bool {
 	return false
 }
 
-func getEndPointByUrl(method string, url string) (endPointStruct, map[string]string, map[string]string, string, bool) {
+func getEndPointByUrl(method string, url string) (EndPointStruct, map[string]string, map[string]string, string, bool) {
 	pathPart := url
 	queryPart := ""
 
@@ -417,14 +417,14 @@ func getEndPointByUrl(method string, url string) (endPointStruct, map[string]str
 		return *ep, pathArgs, queryArgs, xsrft, found
 	}
 
-	epRet := new(endPointStruct)
+	epRet := new(EndPointStruct)
 	pathArgs := make(map[string]string, 0)
 	queryArgs := make(map[string]string, 0)
 
 	return *epRet, pathArgs, queryArgs, "", false
 }
 
-func matchEndPoint(method string, pathPart string) (ep *endPointStruct, found bool) {
+func matchEndPoint(method string, pathPart string) (ep *EndPointStruct, found bool) {
 	// try exact match first
 	pathMatch := method + ":" + pathPart
 	if mEp, match := _manager().endpoints[pathMatch]; match {
@@ -435,7 +435,7 @@ func matchEndPoint(method string, pathPart string) (ep *endPointStruct, found bo
 	totalParts := strings.Count(pathPart, "/") + 1
 	for _, loopEp := range _manager().endpoints {
 
-		if (strings.Index(pathPart+"/", loopEp.root+"/") == 0) && loopEp.requestMethod == method {
+		if (strings.Index(pathPart+"/", loopEp.root+"/") == 0) && loopEp.RequestMethod == method {
 			if loopEp.isVariableLength {
 				ep = &loopEp
 				return ep, true
@@ -470,7 +470,7 @@ func matchEndPoint(method string, pathPart string) (ep *endPointStruct, found bo
 	return ep, false
 }
 
-func parseVarPathArgs(ep *endPointStruct, pathPart string) map[string]string {
+func parseVarPathArgs(ep *EndPointStruct, pathPart string) map[string]string {
 	pathArgs := make(map[string]string, 0)
 	varsPart := strings.Trim(pathPart[len(ep.root):], "/")
 
@@ -480,14 +480,14 @@ func parseVarPathArgs(ep *endPointStruct, pathPart string) map[string]string {
 	return pathArgs
 }
 
-func parsePathArgs(ep *endPointStruct, pathPart string) map[string]string {
+func parsePathArgs(ep *EndPointStruct, pathPart string) map[string]string {
 	pathArgs := make(map[string]string, 0)
 	//Extract Path Arguments
-	for _, par := range ep.params {
+	for _, par := range ep.Params {
 		for upos, str1 := range strings.Split(pathPart, "/") {
 
 			if par.positionInPath == upos {
-				pathArgs[par.name] = strings.Trim(str1, " ")
+				pathArgs[par.Name] = strings.Trim(str1, " ")
 				break
 			}
 		}
@@ -495,7 +495,7 @@ func parsePathArgs(ep *endPointStruct, pathPart string) map[string]string {
 	return pathArgs
 }
 
-func parseQueryArgs(ep *endPointStruct, queryPart string) (map[string]string, string) {
+func parseQueryArgs(ep *EndPointStruct, queryPart string) (map[string]string, string) {
 	queryArgs := make(map[string]string, 0)
 
 	xsrft := ""
@@ -508,8 +508,8 @@ func parseQueryArgs(ep *endPointStruct, queryPart string) (map[string]string, st
 			if pName == XSXRF_PARAM_NAME {
 				xsrft = strings.Trim(dataString, " ")
 			} else {
-				for _, par := range ep.queryParams {
-					if par.name == pName {
+				for _, par := range ep.QueryParams {
+					if par.Name == pName {
 						queryArgs[pName] = strings.Trim(dataString, " ")
 						break
 					}

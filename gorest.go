@@ -83,21 +83,21 @@ const (
 	PATCH   = "PATCH"
 )
 
-type endPointStruct struct {
-	name                 string
-	requestMethod        string
-	signiture            string
+type EndPointStruct struct {
+	Name                 string
+	RequestMethod        string
+	Signiture            string
 	muxRoot              string
 	root                 string
 	nonParamPathPart     map[int]string
-	params               []param //path parameter name and position
-	queryParams          []param
+	Params               []Param //path parameter name and position
+	QueryParams          []Param
 	signitureLen         int
 	paramLen             int
-	outputType           string
+	OutputType           string
 	outputTypeIsArray    bool
 	outputTypeIsMap      bool
-	postdataType         string
+	PostdataType         string
 	postdataTypeIsArray  bool
 	postdataTypeIsMap    bool
 	isVariableLength     bool
@@ -119,11 +119,11 @@ func (err restStatus) String() string {
 	return err.reason
 }
 
-type serviceMetaData struct {
+type ServiceMetaData struct {
 	template     interface{}
-	consumesMime string
-	producesMime []string
-	root         string
+	ConsumesMime string
+	ProducesMime []string
+	Root         string
 	realm        string
 	allowGzip    bool
 }
@@ -133,15 +133,15 @@ var handlerInitialised bool
 
 type manager struct {
 	root		string
-	serviceTypes 	map[string]serviceMetaData
-	endpoints    	map[string]endPointStruct
+	serviceTypes 	map[string]ServiceMetaData
+	endpoints    	map[string]EndPointStruct
 	swaggerEP	string
 }
 
 func newManager() *manager {
 	man := new(manager)
-	man.serviceTypes = make(map[string]serviceMetaData, 0)
-	man.endpoints = make(map[string]endPointStruct, 0)
+	man.serviceTypes = make(map[string]ServiceMetaData, 0)
+	man.endpoints = make(map[string]EndPointStruct, 0)
 	return man
 }
 
@@ -223,7 +223,7 @@ func RegisterServiceOnPath(root string, h interface{}) {
 }
 
 //ServeHTTP dispatches the request to the handler whose pattern most closely matches the request URL.
-func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	url_, err := url.QueryUnescape(r.URL.RequestURI())
 
 	message := "url: " + url_ + " method: " + r.Method + " "
@@ -250,7 +250,7 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if url_ == _manager().swaggerEP {
 		basePath := "http://" + r.Host + "/"
-		swagDoc := buildSwaggerDoc(basePath)
+		swagDoc := buildSwaggerDoc(basePath, this.serviceTypes, this.endpoints)
 		data, _ := json.Marshal(swagDoc)
 		logger.SetResponseCode(http.StatusOK)
 		w.WriteHeader(http.StatusOK)
@@ -285,11 +285,11 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (man *manager) getType(name string) serviceMetaData {
+func (man *manager) getType(name string) ServiceMetaData {
 
 	return man.serviceTypes[name]
 }
-func (man *manager) addType(name string, i serviceMetaData) string {
+func (man *manager) addType(name string, i ServiceMetaData) string {
 	for str, _ := range man.serviceTypes {
 		if name == str {
 			return str
@@ -299,8 +299,8 @@ func (man *manager) addType(name string, i serviceMetaData) string {
 	man.serviceTypes[name] = i
 	return name
 }
-func (man *manager) addEndPoint(ep endPointStruct) {
-	man.endpoints[ep.requestMethod+":"+ep.signiture] = ep
+func (man *manager) addEndPoint(ep EndPointStruct) {
+	man.endpoints[ep.RequestMethod+":"+ep.Signiture] = ep
 }
 
 //Registeres the function to be used for handling all requests directed to gorest.

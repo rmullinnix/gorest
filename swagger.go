@@ -84,16 +84,16 @@ type Authorization struct {
 
 var spec		*SwaggerAPI12
 
-func newSpec(basePath string) *SwaggerAPI12 {
+func newSpec(basePath string, numSvcTypes int, numEndPoints int) *SwaggerAPI12 {
 	spec = new(SwaggerAPI12)
 
 	spec.SwaggerVersion = "1.2"
 	spec.APIVersion	= ""
 	spec.BasePath = basePath
 	spec.ResourcePath = ""
-	spec.APIs = make([]API, len(_manager().endpoints))
+	spec.APIs = make([]API, numEndPoints)
 	spec.Produces = make([]string, 0)
-	spec.Consumes = make([]string, len(_manager().serviceTypes))
+	spec.Consumes = make([]string, numSvcTypes)
 	spec.Authorizations = make(map[string]Authorization, 0)
 	spec.Models = make(map[string]Model, 0)
 
@@ -104,14 +104,14 @@ func _spec() *SwaggerAPI12 {
 	return spec
 }
 
-func buildSwaggerDoc(basePath string) SwaggerAPI12 {
-	spec = newSpec(basePath)
+func buildSwaggerDoc(basePath string, svcTypes map[string]ServiceMetaData, endPoints map[string]EndPointStruct) SwaggerAPI12 {
+	spec = newSpec(basePath, len(svcTypes), len(endPoints))
 
 	x := 0
 	var svcInt 	reflect.Type 
-	for _, st := range _manager().serviceTypes {
-		spec.Produces = append(spec.Produces, st.producesMime...)
-		spec.Consumes[x] = st.consumesMime
+	for _, st := range svcTypes {
+		spec.Produces = append(spec.Produces, st.ProducesMime...)
+		spec.Consumes[x] = st.ConsumesMime
 	
         	svcInt = reflect.TypeOf(st.template)
 
@@ -131,17 +131,17 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 	// skip authorizations for now
 
 	x = 0
-	for _, ep := range _manager().endpoints {
+	for _, ep := range endPoints {
 		var api		API
 
-		api.Path = cleanPath(ep.signiture)
+		api.Path = cleanPath(ep.Signiture)
 		//api.Description = ep.description
 
 		var op		Operation
 
 		api.Operations = make([]Operation, 1)
 
-		if field, found := svcInt.FieldByName(ep.name); found {
+		if field, found := svcInt.FieldByName(ep.Name); found {
 			temp := strings.Join(strings.Fields(string(field.Tag)), " ")
 			tags := reflect.StructTag(temp)
 			if tag := tags.Get("sw.summary"); tag != "" {
@@ -155,23 +155,23 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 			if tag := tags.Get("sw.nickname"); tag != "" {
 				op.Nickname = tag
 			} else {
-				op.Nickname = ep.name
+				op.Nickname = ep.Name
 			}
 
 			op.Responses = populateResponses(tags)
 		}
 
-		op.Method = ep.requestMethod
-		op.Type = ep.outputType
-		op.Parameters = make([]Parameter, len(ep.params) + len(ep.queryParams))
+		op.Method = ep.RequestMethod
+		op.Type = ep.OutputType
+		op.Parameters = make([]Parameter, len(ep.Params) + len(ep.QueryParams))
 		op.Authorizations = make([]Authorization, 0)
 		pnum := 0
-		for j := 0; j < len(ep.params); j++ {
+		for j := 0; j < len(ep.Params); j++ {
 			var par		Parameter
 
 			par.ParamType = "path"
-			par.Name = ep.params[j].name
-			par.Type = ep.params[j].typeName
+			par.Name = ep.Params[j].Name
+			par.Type = ep.Params[j].TypeName
 			par.Description = ""
 			par.Required = true
 			par.AllowMultiple = false
@@ -180,12 +180,12 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 			pnum++
 		}
 
-		for j := 0; j < len(ep.queryParams); j++ {
+		for j := 0; j < len(ep.QueryParams); j++ {
 			var par		Parameter
 
 			par.ParamType = "query"
-			par.Name = ep.queryParams[j].name
-			par.Type = ep.queryParams[j].typeName
+			par.Name = ep.QueryParams[j].Name
+			par.Type = ep.QueryParams[j].TypeName
 			par.Description = ""
 			par.Required = false
 			par.AllowMultiple = false
@@ -194,12 +194,12 @@ func buildSwaggerDoc(basePath string) SwaggerAPI12 {
 			pnum++
 		}
 
-		if ep.postdataType != "" {
+		if ep.PostdataType != "" {
 			var par		Parameter
 
 			par.ParamType = "body"
-			par.Name = ep.postdataType
-			par.Type = ep.postdataType
+			par.Name = ep.PostdataType
+			par.Type = ep.PostdataType
 			par.Description = ""
 			par.Required = true
 			par.AllowMultiple = false

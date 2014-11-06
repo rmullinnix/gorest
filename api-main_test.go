@@ -77,9 +77,9 @@ func TestServiceMeta(t *testing.T) {
 	if meta, found := restManager.serviceTypes["github.com/rmullinnix/gorest/TypesService"]; !found {
 		t.Error("Service Not registered correctly")
 	} else {
-		AssertEqual(meta.consumesMime, "application/json", "Service consumesMime", t)
-		AssertEqual(meta.producesMime[0], "application/json", "Service producesMime", t)
-		AssertEqual(meta.root, MUX_ROOT+"types-service/", "Service root", t)
+		AssertEqual(meta.ConsumesMime, "application/json", "Service consumesMime", t)
+		AssertEqual(meta.ProducesMime[0], "application/json", "Service producesMime", t)
+		AssertEqual(meta.Root, MUX_ROOT+"types-service/", "Service root", t)
 
 	}
 
