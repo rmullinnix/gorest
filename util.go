@@ -38,12 +38,12 @@ import (
 //Marshals the data in interface i into a byte slice, using the Marhaller/Unmarshaller specified in mime.
 //The Marhaller/Unmarshaller must have been registered before using gorest.RegisterMarshaller
 func Marshal(i interface{}, mime string) (io.ReadCloser, error) {
-	return InterfaceToBytes(i, mime)
+	return interfaceToBytes(i, mime)
 }
 
 //Marshals the data in interface i into a byte slice, using the Marhaller/Unmarshaller specified in mime.
 //The Marhaller/Unmarshaller must have been registered before using gorest.RegisterMarshaller
-func InterfaceToBytes(i interface{}, mime string) (io.ReadCloser, error) {
+func interfaceToBytes(i interface{}, mime string) (io.ReadCloser, error) {
 	marshalType := mime
 
 	if strings.Contains(mime, "json") {
@@ -89,9 +89,9 @@ func InterfaceToBytes(i interface{}, mime string) (io.ReadCloser, error) {
 //Unmarshals the data in buf into interface i, using the Marhaller/Unmarshaller specified in mime.
 //The Marhaller/Unmarshaller must have been registered before using gorest.RegisterMarshaller
 func Unmarshal(buf *bytes.Buffer, i interface{}, mime string) error {
-	return BytesToInterface(buf, i, mime)
+	return bytesToInterface(buf, i, mime)
 }
-func BytesToInterface(buf *bytes.Buffer, i interface{}, mime string) error {
+func bytesToInterface(buf *bytes.Buffer, i interface{}, mime string) error {
 	marshalType := mime
 
 	if strings.Contains(mime, "json") {

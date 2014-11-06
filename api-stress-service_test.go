@@ -45,7 +45,6 @@ func (serv StressService) Loop1(Bool bool, Int int) {
 
 func (serv StressService) Loop2(Bool bool, Int int) {
 	rb := serv.ResponseBuilder()
-	rb.Allow("GET")
-	rb.Allow("HEAD").Allow("POST")
+	rb.AddHeader("Allow", "GET,HEAD,POST")
 	<-time.After(2 * time.Second)
 }

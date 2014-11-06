@@ -77,10 +77,10 @@ type Entity bool		// all
 type Link bool			// all
 type Action bool		// siren
 type Curie bool			// hal
-type Query bool			// collection+json
-type Error bool			// collection+json
-type Template bool		// collection+json
-type Data bool			// collection+json
+//type Query bool			// collection+json
+//type Error bool			// collection+json
+//type Template bool		// collection+json
+//type Data bool			// collection+json
 
 var entityInitialized	bool
 var entities 		map[string]entity

@@ -99,8 +99,8 @@ func (sess *TestSessiondata) SessionId() string {
 
 func (serv TypesService) Head(Bool bool, Int int) {
 	rb := serv.ResponseBuilder()
-	rb.ETag("12345")
-	rb.Age(60 * 30) //30 minutes old
+	rb.SetHeader("ETag", "12345")
+	rb.SetHeader("Age", "1800") //30 minutes old
 
 }
 func (serv TypesService) DoDelete(Bool bool, Int int) {
@@ -109,8 +109,7 @@ func (serv TypesService) DoDelete(Bool bool, Int int) {
 
 func (serv TypesService) Options(Bool bool, Int int) {
 	rb := serv.ResponseBuilder()
-	rb.Allow("GET")
-	rb.Allow("HEAD").Allow("POST")
+	rb.AddHeader("Allow", "GET,HEAD,POST")
 }
 
 func (serv TypesService) GetVarArgs(v ...int) string {

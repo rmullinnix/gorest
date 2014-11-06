@@ -50,7 +50,7 @@ func TestInit(t *testing.T) {
 	RegisterServiceOnPath(MUX_ROOT, new(PathsService))
 	RegisterServiceOnPath(MUX_ROOT, new(StressService))
 
-	http.Handle(MUX_ROOT, Handle())
+	http.Handle(MUX_ROOT, handle())
 
 	//http.HandleFunc(MUX_ROOT, HandleFunc)
 	//httptest.NewServer(Handle())

@@ -466,7 +466,7 @@ func prepareServe(context *Context, ep endPointStruct, args map[string]string, q
 
 			rb.ctx.responseMimeType = mimeType
 			//At this stage we should be ready to write the response to client
-			if bytarr, err := InterfaceToBytes(hidec, mimeType); err == nil {
+			if bytarr, err := interfaceToBytes(hidec, mimeType); err == nil {
 				rb.ctx.respPacket = bytarr
 				rb.SetResponseCode(http.StatusOK)
 				return rb
@@ -497,7 +497,7 @@ func makeArg(data string, template reflect.Type, mime string) (reflect.Value, bo
 	}
 
 	buf := bytes.NewBufferString(data)
-	err := BytesToInterface(buf, i, mime)
+	err := bytesToInterface(buf, i, mime)
 
 	if err != nil {
 		logger.Error.Println("Error Unmarshalling data using " + mime + ". Incompatable data format in entity. (" + err.Error() + ")")

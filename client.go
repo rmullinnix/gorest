@@ -65,7 +65,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -112,79 +111,6 @@ func (this *RequestBuilder) UseContentType(mime string) *RequestBuilder {
 	return this
 }
 
-func (this *RequestBuilder) CacheNoCache() *RequestBuilder {
-	this.setCache("no-cache")
-	return this
-}
-func (this *RequestBuilder) CacheNoStore() *RequestBuilder {
-	this.setCache("no-store")
-	return this
-}
-func (this *RequestBuilder) CacheMaxAge(seconds int) *RequestBuilder {
-	this.setCache("max-age = " + strconv.Itoa(seconds))
-	return this
-}
-func (this *RequestBuilder) CacheStale(seconds int) *RequestBuilder {
-	this.setCache("max-stale = " + strconv.Itoa(seconds))
-	return this
-}
-func (this *RequestBuilder) CacheMinFresh(seconds int) *RequestBuilder {
-	this.setCache("min-fresh = " + strconv.Itoa(seconds))
-	return this
-}
-func (this *RequestBuilder) CacheOnlyIfCached() *RequestBuilder {
-	this.setCache("only-if-cached")
-	return this
-}
-func (this *RequestBuilder) CacheClearAllOptions() *RequestBuilder {
-	this._req.Header.Del("Cache-control")
-	return this
-}
-func (this *RequestBuilder) setCache(option string) {
-	this._req.Header.Add("Cache-control", option)
-}
-
-func (this *RequestBuilder) Accept(mime string) *RequestBuilder {
-	this._req.Header.Add("Accept", mime)
-	return this
-}
-func (this *RequestBuilder) AcceptClear() *RequestBuilder {
-	this._req.Header.Del("Accept")
-	return this
-}
-func (this *RequestBuilder) AcceptCharSet(set string) *RequestBuilder {
-	this._req.Header.Add("Accept-Charset", set)
-	return this
-}
-func (this *RequestBuilder) AcceptCharSetClear() *RequestBuilder {
-	this._req.Header.Del("Accept-Charset")
-	return this
-}
-func (this *RequestBuilder) AcceptEncoding(option string) *RequestBuilder {
-	this._req.Header.Add("Accept-Encoding", option)
-	return this
-}
-func (this *RequestBuilder) AcceptEncodingClear() *RequestBuilder {
-	this._req.Header.Del("Accept-Encoding")
-	return this
-}
-func (this *RequestBuilder) AcceptLanguage(lang string) *RequestBuilder {
-	this._req.Header.Add("Accept-Language", lang)
-	return this
-}
-func (this *RequestBuilder) AcceptLanguageClear() *RequestBuilder {
-	this._req.Header.Del("Accept-Language")
-	return this
-}
-
-func (this *RequestBuilder) ConnectionKeepAlive() *RequestBuilder {
-	this._req.Header.Set("Connection", "keep-alive")
-	return this
-}
-func (this *RequestBuilder) ConnectionClose() *RequestBuilder {
-	this._req.Header.Set("Connection", "close")
-	return this
-}
 func (this *RequestBuilder) AddCookie(cookie *http.Cookie) *RequestBuilder {
 	this._req.AddCookie(cookie)
 	return this
@@ -234,7 +160,7 @@ func (this *RequestBuilder) Get(i interface{}, expecting int) (*http.Response, e
 		buf := new(bytes.Buffer)
 		io.Copy(buf, res.Body)
 		res.Body.Close()
-		err = BytesToInterface(buf, i, this.defaultContentType)
+		err = bytesToInterface(buf, i, this.defaultContentType)
 		return res, nil
 	}
 
@@ -247,7 +173,7 @@ func (this *RequestBuilder) Post(i interface{}) (*http.Response, error) {
 
 func (this *RequestBuilder) PostWithResponse(i interface{}, output interface{}) (*http.Response, error) {
 	this._req.Method = POST
-	bb, err := InterfaceToBytes(i, this.defaultContentType)
+	bb, err := interfaceToBytes(i, this.defaultContentType)
 	if err != nil {
 		return nil, err
 	}
@@ -263,7 +189,7 @@ func (this *RequestBuilder) PostWithResponse(i interface{}, output interface{}) 
 	io.Copy(buf, res.Body)
 	res.Body.Close()
 	if buf.Len() > 0 && output != nil {
-		err = BytesToInterface(buf, output, this.defaultContentType)
+		err = bytesToInterface(buf, output, this.defaultContentType)
 		return res, err
 	}
 	return res, nil

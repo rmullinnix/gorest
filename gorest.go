@@ -328,7 +328,8 @@ func ServeStandAlone(port int) {
 func _manager() *manager {
 	return restManager
 }
-func Handle() manager {
+
+func handle() manager {
 	return *restManager
 }
 

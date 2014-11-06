@@ -45,8 +45,7 @@ func (serv PathsService) DeleteMixed2(Bool bool, Int int) {
 }
 func (serv PathsService) OptionsMixed(Bool bool, Int int) {
 	rb := serv.ResponseBuilder()
-	rb.Allow("GET")
-	rb.Allow("HEAD").Allow("POST")
+	rb.AddHeader("Allow", "GET,HEAD,POST")
 }
 func (serv PathsService) GetMixed(Bool bool, Int int) string {
 	return "Hello"
