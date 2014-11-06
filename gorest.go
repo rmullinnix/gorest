@@ -60,14 +60,13 @@ package gorest
 import (
 	"encoding/json"
 	"github.com/rmullinnix/logger"
-	"io"
 	"net/http"
 	"net/url"
 	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
-	"compress/gzip"
+	//"compress/gzip"
 )
 
 type GoRestService interface {
@@ -272,76 +271,12 @@ func (_ manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx := new(Context)
 		ctx.writer = w
 		ctx.request = r
-		ctx.args = args
-		ctx.queryArgs = queryArgs
 		ctx.xsrftoken = strings.TrimPrefix(authkey, "Bearer ")
+		ctx.sessData.relSessionData = make(map[string]interface{})
 
-		header, state := prepareServe(ctx, ep)
+		rb := prepareServe(ctx, ep, args, queryArgs)
 
-		responseCode := -1
-		if state.httpCode == http.StatusOK {
-			switch ep.requestMethod {
-			case POST, PUT, DELETE, HEAD, OPTIONS:
-				{
-					if ctx.responseCode == 0 {
-						logger.SetResponseCode(getDefaultResponseCode(ep.requestMethod))
-						responseCode = getDefaultResponseCode(ep.requestMethod)
-					} else {
-						if !ctx.dataHasBeenWritten {
-							responseCode = ctx.responseCode
-						}
-					}
-				}
-			case GET:
-				{
-					if ctx.responseCode == 0 {
-						logger.SetResponseCode(getDefaultResponseCode(ep.requestMethod))
-						responseCode = getDefaultResponseCode(ep.requestMethod)
-					} else {
-						if !ctx.dataHasBeenWritten {
-							responseCode = ctx.responseCode
-						}
-					}
-
-				}
-			}
-
-			if !ctx.responseMimeSet && header != nil {
-				w.Header().Set("Content-Type", ctx.responseMimeType)
-			}
-
-			if header != nil && !ctx.overide {
-				if ep.allowGzip == 1 && strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-					w.Header().Set("Content-Encoding", "gzip")
-					w.WriteHeader(responseCode)
-					ctx.dataHasBeenWritten = true
-					gzipWriter := gzip.NewWriter(w)
-					defer gzipWriter.Close()
-					io.Copy(gzipWriter, header)
-				} else {
-					w.WriteHeader(responseCode)
-					ctx.dataHasBeenWritten = true
-					io.Copy(w, header)
-				}
-			} else {
-				if !ctx.dataHasBeenWritten {
-					w.WriteHeader(responseCode)
-					ctx.dataHasBeenWritten = true
-				}
-			}
-
-
-		} else {
-			logger.Error.Println("Problem with request. Error:", r.Method, state.httpCode, state.reason, "; Request: ", r.URL.RequestURI())
-			if len(state.header) > 0 {
-				items := strings.Split(string(state.header), ": ")
-				w.Header().Set(items[0], items[1])
-			}
-			logger.SetResponseCode(state.httpCode)
-			w.WriteHeader(state.httpCode)
-			ctx.dataHasBeenWritten = true
-			w.Write([]byte(state.reason))
-		}
+		rb.WritePacket()
 	} else {
 		logger.Warning.Println("Could not serve page, path not found: ", r.Method, url_)
 		logger.SetResponseCode(http.StatusNotFound)

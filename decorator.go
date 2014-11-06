@@ -87,7 +87,7 @@ var entities 		map[string]entity
 
 //Signiture of functions to be used as Decorators
 type Decorator struct {
-	Decorate func(interface{}, map[string]entity)(interface{})
+	Decorate func(string, interface{}, map[string]entity)(interface{})
 }
 
 //Registers an Hypermedia Decorator for the specified mime type

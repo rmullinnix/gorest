@@ -30,7 +30,7 @@ package gorest
 var authorizers map[string]Authorizer
 
 //Signiture of functions to be used as Authorizers
-type Authorizer func(string, string, string)(int, string, string)
+type Authorizer func(string, string, string, *ResponseBuilder)(bool)
 
 //Registers an Authorizer for the specified realm.
 func RegisterRealmAuthorizer(realm string, auth Authorizer){
@@ -54,7 +54,7 @@ func GetAuthorizer(realm string)(a Authorizer){
 
 //This is the default and exmaple authorizer that is used to authorize requests to endpints with no security realms.
 //It always allows access and returns nil for SessionData.
-func DefaultAuthorizer(token string, resource string, method string)(int, string, string) {
-	return 200, "", ""
+func DefaultAuthorizer(token string, resource string, method string, rb *ResponseBuilder)(bool) {
+	return true
 }
 

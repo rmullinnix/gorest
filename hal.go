@@ -55,7 +55,7 @@ type HResourceLink struct {
 // to the message prior to marshaling the data and returning it to the client
 // The HalDecorator loosely follows the HAL specification
 // mime type: applcation/hal+json 
-func halDecorator(response interface{}, entmap map[string]entity) (interface{}) {
+func halDecorator(prefix string, response interface{}, entmap map[string]entity) (interface{}) {
 	var hm_resp 	HalDocument
 
 	hm_resp = make(map[string]interface{}, 0)

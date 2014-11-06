@@ -74,12 +74,15 @@ type SLink struct {
 	Type		string		`json:"type,omitempty"`
 }
 
+var srvr_prefix		string
 // This takes the data destined for the http response body and adds hypermedia content
 // to the message prior to marshaling the data and returning it to the client
 // The SirenDecorator loosely follows the siren specification
 // mime type: applcation/vnd.siren+json 
-func sirenDecorator(response interface{}, entmap map[string]entity) (interface{}) {
+func sirenDecorator(prefix string, response interface{}, entmap map[string]entity) (interface{}) {
 	var hm_resp 	Siren
+
+	srvr_prefix = prefix
 
 	v := reflect.ValueOf(response)
 	switch v.Kind() {
@@ -237,6 +240,7 @@ func updatePath(path string, props map[string]interface{}) string {
 			}
 		}
 	}
+	path = srvr_prefix + path
 
 	return path
 }

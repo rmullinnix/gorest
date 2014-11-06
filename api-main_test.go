@@ -29,7 +29,6 @@ import (
 //	"io/ioutil"
 	"log"
 	"net/http"
-	//"net/http/httptest"
 	"github.com/rmullinnix/logger"
 	"runtime"
 	"testing"
@@ -42,7 +41,7 @@ var globalTestScope *testing.T //This is used to do Asserts inside the service i
 func TestInit(t *testing.T) {
 	runtime.GOMAXPROCS(runtime.NumCPU() * 4)
 	globalTestScope = t
-	logger.Init("error")
+	logger.Init("warn")
 	log.Println("Starting tests")
 //	log.SetOutput(ioutil.Discard) //Toggle comment in-out to see log output
 

@@ -52,10 +52,12 @@ func testTypes(t *testing.T) {
 
 	postVarArgs(t)
 	postVarArgs(t)
+
 	postString(t)
 	postInteger(t)
 	postBool(t)
 	postFloat(t)
+
 	postMapInt(t)
 	postMapStruct(t)
 	postArrayStruct(t)

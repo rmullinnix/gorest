@@ -325,27 +325,24 @@ func panicMethNotFound(methFound bool, ep endPointStruct, t reflect.Type, f refl
 //Runtime functions below:
 //-----------------------------------------------------------------------------------------------------------------
 
-func prepareServe(context *Context, ep endPointStruct) (io.ReadCloser, restStatus) {
+func prepareServe(context *Context, ep endPointStruct, args map[string]string, queryArgs map[string]string) (*ResponseBuilder) {
 	servMeta := _manager().getType(ep.parentTypeName)
-
-	//Check Authorization
-
-	if servMeta.realm != "" {
-		http_code, ret_msg, head := GetAuthorizer(servMeta.realm)(context.xsrftoken, servMeta.realm, context.request.Method)
-		// context.relSessionData = sess
-		if http_code == 200 {
-				goto Run
-		}
-		return nil, restStatus{http_code, ret_msg, head}
-	}
-
-Run:
 
 	t := reflect.TypeOf(servMeta.template).Elem() //Get the type first, and it's pointer so Elem(), we created service with new (why??)
 	servVal := reflect.New(t).Elem() //Key to creating new instance of service, from the type above
 
 	//Set the Context; the user can get the context from her services function param
 	servVal.FieldByName("RestService").FieldByName("Context").Set(reflect.ValueOf(context))
+	rs := servVal.FieldByName("RestService").Interface().(RestService)
+	rb := rs.ResponseBuilder()
+
+	//Check Authorization
+
+	if servMeta.realm != "" {
+		if !GetAuthorizer(servMeta.realm)(context.xsrftoken, servMeta.realm, context.request.Method, rb) {
+			return rb
+		}
+	}
 
 	arrArgs := make([]reflect.Value, 0)
 
@@ -365,14 +362,16 @@ Run:
 
 		//println("This is the body of the post:",body)
 
-		if v, state := makeArg(body, targetMethod.Type.In(1), mime); state.httpCode != http.StatusBadRequest {
+		if v, valid := makeArg(body, targetMethod.Type.In(1), mime); valid {
 			arrArgs = append(arrArgs, v)
 		} else {
-			return nil, state
+			rb.SetResponseCode(http.StatusBadRequest)
+			rb.SetResponseMsg("Error unmarshalling data using " + mime)
+			return rb
 		}
 	}
 
-	if len(context.args) == ep.paramLen || (ep.isVariableLength && ep.paramLen == 1) {
+	if len(args) == ep.paramLen || (ep.isVariableLength && ep.paramLen == 1) {
 		startIndex := 1
 		if ep.requestMethod == POST || ep.requestMethod == PUT {
 			startIndex = 2
@@ -380,13 +379,15 @@ Run:
 
 		if ep.isVariableLength {
 			varSliceArgs := reflect.New(targetMethod.Type.In(startIndex)).Elem()
-			for ij := 0; ij < len(context.args); ij++ {
-				dat := context.args[string(ij)]
+			for ij := 0; ij < len(args); ij++ {
+				dat := args[string(ij)]
 
-				if v, state := makeArg(dat, targetMethod.Type.In(startIndex).Elem(), mime); state.httpCode != http.StatusBadRequest {
+				if v, valid := makeArg(dat, targetMethod.Type.In(startIndex).Elem(), mime); valid {
 					varSliceArgs = reflect.Append(varSliceArgs, v)
 				} else {
-					return nil, state
+					rb.SetResponseCode(http.StatusBadRequest)
+					rb.SetResponseMsg("Error unmarshalling data using " + mime)
+					return rb
 				}
 			}
 			arrArgs = append(arrArgs, varSliceArgs)
@@ -395,14 +396,16 @@ Run:
 			// GET and DELETE will only need these arguments, not the "postdata" one in their method calls
 			for _, par := range ep.params {
 				dat := ""
-				if str, found := context.args[par.name]; found {
+				if str, found := args[par.name]; found {
 					dat = str
 				}
 
-				if v, state := makeArg(dat, targetMethod.Type.In(startIndex), mime); state.httpCode != http.StatusBadRequest {
+				if v, valid := makeArg(dat, targetMethod.Type.In(startIndex), mime); valid {
 					arrArgs = append(arrArgs, v)
 				} else {
-					return nil, state
+					rb.SetResponseCode(http.StatusBadRequest)
+					rb.SetResponseMsg("Error unmarshalling data using " + mime)
+					return rb
 				}
 				startIndex++
 			}
@@ -413,14 +416,16 @@ Run:
 		//Also they may be sent through in any order.
 		for _, par := range ep.queryParams {
 			dat := ""
-			if str, found := context.queryArgs[par.name]; found {
+			if str, found := queryArgs[par.name]; found {
 				dat = str
 			}
 
-			if v, state := makeArg(dat, targetMethod.Type.In(startIndex), mime); state.httpCode != http.StatusBadRequest {
+			if v, valid := makeArg(dat, targetMethod.Type.In(startIndex), mime); valid {
 				arrArgs = append(arrArgs, v)
 			} else {
-				return nil, state
+				rb.SetResponseCode(http.StatusBadRequest)
+				rb.SetResponseMsg("Error unmarshalling data using " + mime)
+				return rb
 			}
 
 			startIndex++
@@ -455,40 +460,49 @@ Run:
 			dec := GetHypermediaDecorator(mimeType)
 			hidec := ret[0].Interface()
 			if dec != nil {
-				hidec = dec.Decorate(hidec, entities)
+				prefix := "http://" + context.request.Host
+				hidec = dec.Decorate(prefix, hidec, entities)
 			}
 
-			context.responseMimeType = mimeType
+			rb.ctx.responseMimeType = mimeType
 			//At this stage we should be ready to write the response to client
 			if bytarr, err := InterfaceToBytes(hidec, mimeType); err == nil {
-				return bytarr, restStatus{http.StatusOK, "", ""}
+				rb.ctx.respPacket = bytarr
+				rb.SetResponseCode(http.StatusOK)
+				return rb
 			} else {
 				//This is an internal error with the registered marshaller not being able to marshal internal structs
-				return nil, restStatus{http.StatusInternalServerError, "Internal server error. Could not Marshal/UnMarshal data: " + err.Error(), ""}
+				rb.SetResponseCode(http.StatusInternalServerError)
+				rb.SetResponseMsg("Internal server error. Could not Marshal/UnMarshal data: " + err.Error())
+				return rb
 			}
 		} else {
-
-			return nil, restStatus{http.StatusOK, "", ""}
+			rb.SetResponseCode(http.StatusOK)
+			return rb
 		}
 	}
 
 	//Just in case the whole civilization crashes and it falls thru to here. This shall never happen though... well tested
 	logger.Error.Panicln("There was a problem with request handing. Probably a bug, please report.") //Add client data, and send support alert
-	return nil, restStatus{http.StatusInternalServerError, "GoRest: Internal server error.", ""}
+	rb.SetResponseCode(http.StatusInternalServerError)
+	rb.SetResponseMsg("GoRest: Internal server error.")
+	return rb 
 }
 
-func makeArg(data string, template reflect.Type, mime string) (reflect.Value, restStatus) {
+func makeArg(data string, template reflect.Type, mime string) (reflect.Value, bool) {
 	i := reflect.New(template).Interface()
 
 	if data == "" {
-		return reflect.ValueOf(i).Elem(), restStatus{http.StatusOK, "", ""}
+		return reflect.ValueOf(i).Elem(), true
 	}
 
 	buf := bytes.NewBufferString(data)
 	err := BytesToInterface(buf, i, mime)
 
 	if err != nil {
-		return reflect.ValueOf(nil), restStatus{http.StatusBadRequest, "Error Unmarshalling data using " + mime + ". Client sent incompetible data format in entity. (" + err.Error() + ")", ""}
+		logger.Error.Println("Error Unmarshalling data using " + mime + ". Incompatable data format in entity. (" + err.Error() + ")")
+		return reflect.ValueOf(nil), false
 	}
-	return reflect.ValueOf(i).Elem(), restStatus{http.StatusOK, "", ""}
+	
+	return reflect.ValueOf(i).Elem(), true
 }

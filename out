@@ -1,0 +1,855 @@
+2014/11/05 11:22:18 Starting tests
+INFO: 2014/11/05 11:22:18 parse.go:103: All EndPoints for service [ TypesService ] , registered under root path:  /home/now/the/future/types-service/
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/var/{...:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/varstring/{...:string}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/string/{Bool:bool}/{Int:int}?{flow:int}&{name:string}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/strin?{name:string}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/int/{Bool:bool}/int/yes/{Int:int}/for
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/bool/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/float/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/mapint/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/mapstruct/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: GET home/now/the/future/types-service/arraystruct/{FName:string}/{Age:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: POST home/now/the/future/types-service/var/{...:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: POST home/now/the/future/types-service/string/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: POST home/now/the/future/types-service/int/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: POST home/now/the/future/types-service/bool/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: POST home/now/the/future/types-service/float/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: POST home/now/the/future/types-service/mapint/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: POST home/now/the/future/types-service/mapstruct/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: POST home/now/the/future/types-service/arraystruct/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: HEAD home/now/the/future/types-service/bool/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: OPTIONS home/now/the/future/types-service/bool/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: TypesService  endpoint: DELETE home/now/the/future/types-service/bool/{Bool:bool}/{Int:int}
+INFO: 2014/11/05 11:22:18 parse.go:103: All EndPoints for service [ PathsService ] , registered under root path:  /home/now/the/future/paths-service/
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: PathsService  endpoint: DELETE home/now/the/future/paths-service/bool/{Bool:bool}/mix1/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: PathsService  endpoint: DELETE home/now/the/future/paths-service/bool/{Bool:bool}/mix2/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: PathsService  endpoint: OPTIONS home/now/the/future/paths-service/bool/{Bool:bool}/mix1/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: PathsService  endpoint: GET home/now/the/future/paths-service/bool/{Bool:bool}/mix1/{Int:int}
+INFO: 2014/11/05 11:22:18 parse.go:103: All EndPoints for service [ StressService ] , registered under root path:  /home/now/the/future/stress-service/
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: StressService  endpoint: DELETE home/now/the/future/stress-service/loop1/{Bool:bool}/mix1/{Int:int}
+INFO: 2014/11/05 11:22:18 reflect.go:156: Registerd service: StressService  endpoint: OPTIONS home/now/the/future/stress-service/loop2/{Bool:bool}/mix1/{Int:int}
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/string/true/5?xsrft=12345&name=Nameed&flow=6 method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/strin?xsrft=12345&name=Nameed method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/string/true/5?xsrft=12345&name=Nameed method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/string/true/5?xsrft=12345&flow=6 method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/string/true/5?xsrft=12345&flow= method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/string/true/5?xsrft=12345&flow method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/varstring/One/Two/Three?xsrft=12345 method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/int/true/int/yes/2/for?xsrft=12345&name=Nameed&flow=6 method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/bool/false/2?xsrft=12345 method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/float/false/2?xsrft=12345 method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/mapint/false/2?xsrft=12345 method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/mapstruct/false/2?xsrft=12345 method: GET   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/arraystruct/Sandy/2?xsrft=12345 method: GET   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/var/5/24567?xsrft=12345 method: POST   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/var/5/24567?xsrft=12345 method: POST   dur: 0 ms  response:  200
+2014/11/05 11:22:18 posted: "Hello"
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/string/true/5?xsrft=12345 method: POST   dur: 0 ms  response:  200
+2014/11/05 11:22:18 posted: 6
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/int/true/5?xsrft=12345 method: POST   dur: 0 ms  response:  200
+2014/11/05 11:22:18 posted: 6
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/int/true/5?xsrft=fox method: POST   dur: 0 ms  response:  200
+2014/11/05 11:22:18 posted: false
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/bool/true/5?xsrft=12345 method: POST   dur: 0 ms  response:  200
+2014/11/05 11:22:18 posted: 34.56788
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/float/true/5?xsrft=12345 method: POST   dur: 0 ms  response:  200
+2014/11/05 11:22:18 posted map One: 111
+2014/11/05 11:22:18 posted map Two: 222
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/mapint/true/5?xsrft=12345 method: POST   dur: 0 ms  response:  200
+write header 4
+2014/11/05 11:22:18 posted map One: David1 Gueta1 111
+2014/11/05 11:22:18 posted map Two: David2 Gueta2 222
+write header 1
+2014/11/05 11:22:18 http: multiple response.WriteHeader calls
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/mapstruct/true/5?xsrft=12345 method: POST   dur: 0 ms  response:  200
+2014/11/05 11:22:18 posted Array One: Joe Soap user1
+2014/11/05 11:22:18 posted Array Two: Jose Soap2 user2
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/arraystruct/true/5?xsrft=12345 method: POST   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/bool/false/2?xsrft=12345 method: HEAD   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/bool/false/2?xsrft=12345 method: OPTIONS   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/bool/false/2?xsrft=12345 method: DELETE   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/bool/false/2?xsrft=12345 method: DELETE   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/types-service/bool/false/2?xsrft=12345 method: DELETE   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/paths-service/bool/true/mix1/5?xsrft=12345 method: DELETE   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/paths-service/bool/true/mix2/5?xsrft=12345 method: DELETE   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/paths-service/bool/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 0 ms  response:  200
+write header 3
+INFO: 2014/11/05 11:22:18 logger.go:62: url: /home/now/the/future/paths-service/bool/true/mix1/5?xsrft=12345 method: GET   dur: 0 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:20 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2007 ms  response:  200
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:21 logger.go:62: url: /home/now/the/future/stress-service/loop1/true/mix1/5?xsrft=12345 method: DELETE   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2024 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2005 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2028 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2034 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2000 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2002 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2002 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2002 ms  response:  200
+write header 1
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+write header 1
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+INFO: 2014/11/05 11:22:23 logger.go:62: url: /home/now/the/future/stress-service/loop2/true/mix1/5?xsrft=12345 method: OPTIONS   dur: 2001 ms  response:  200
+PASS
+ok  	github.com/rmullinnix/gorest	4.184s
