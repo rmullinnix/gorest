@@ -4,6 +4,7 @@ package main
 import (
 	"github.com/rmullinnix/gorest"
 	"github.com/rmullinnix/gorest/swagger"
+	"github.com/rmullinnix/hypermedia"
 	"github.com/rmullinnix/logger"
 	"net/http"
 	"strconv"
@@ -35,22 +36,22 @@ type ReferenceService struct {
 }
 
 type StatesHypermedia struct{
-	gorest.Entity	`class:"States" href:"/galaga/dectest/states"`
-	newstate	gorest.Action	`class:"State" method:"POST" href:"/galaga/dectest/state"`
-	first		gorest.Link	`href:"/contra/secuirty/states?page=first"`
-	last		gorest.Link	`href:"/contra/secuirty/states?page=last"`
-	next		gorest.Link	`href:"/contra/secuirty/states?page={page}+1"`
-	prev		gorest.Link	`href:"/contra/secuirty/states?page={page}-1"`
-	Users		gorest.Link	`href:"/contra/secuirty/roles"`
-	Roles		gorest.Link	`href:"/contra/secuirty/users"`
+	hypermedia.Entity	`class:"States" href:"/galaga/dectest/states"`
+	newstate	hypermedia.Action	`class:"State" method:"POST" href:"/galaga/dectest/state"`
+	first		hypermedia.Link	`class:"State" href:"/contra/secuirty/states?page=first"`
+	last		hypermedia.Link	`class:"State" href:"/contra/secuirty/states?page=last"`
+	next		hypermedia.Link	`class:"State" href:"/contra/secuirty/states?page={page}+1"`
+	prev		hypermedia.Link	`class:"State" href:"/contra/secuirty/states?page={page}-1"`
+	Users		hypermedia.Link	`class:"State" href:"/contra/secuirty/roles"`
+	Roles		hypermedia.Link	`class:"Role" href:"/contra/secuirty/users"`
 }
 
 type StateHypermedia struct {
-	gorest.Entity	`class:"State" key:"Name" href:"/galaga/dectest/state/{key}"`
-	edit		gorest.Action	`class:"State" method:"PUT" href:"/galaga/dectest/state/{key}"`
-	delete		gorest.Action	`class:"State" method:"DELETE" href:"/galaga/dectest/state/{key}"`
-	self		gorest.Link	`href:"/galaga/dectest/state/{key}"`
-	States		gorest.Link	`href:"/galaga/dectest/states"`
+	hypermedia.Entity	`class:"State" href:"/galaga/dectest/state/{Value}"`
+	edit		hypermedia.Action	`class:"State" method:"PUT" href:"/galaga/dectest/state/{Value}"`
+	delete		hypermedia.Action	`class:"State" method:"DELETE" href:"/galaga/dectest/state/{Value}"`
+	self		hypermedia.Link	`class:"State" href:"/galaga/dectest/state/{Value}"`
+	States		hypermedia.Link	`class:"State" href:"/galaga/dectest/states"`
 }
 
 func main() {
@@ -59,9 +60,14 @@ func main() {
 	logger.Init("info")
 
 	gorest.RegisterDocumentor("swagger", swagger.NewSwaggerDocumentor())
+	hypermedia.NewHypermediaDecorator()
+	dec := gorest.Decorator{hypermedia.Decorate}
+	gorest.RegisterHypermedia(&dec)
 	gorest.RegisterService(new(ReferenceService))
-	gorest.RegisterEntity(new(StateHypermedia))
-	gorest.RegisterEntity(new(StatesHypermedia))
+	hypermedia.RegisterEntity(new(StateHypermedia))
+	hypermedia.RegisterEntity(new(StatesHypermedia))
+	hypermedia.AddAccessRights("States", "public", "read")
+	hypermedia.AddAccessRights("State", "public", "create,read,delete")
 
 	http.Handle("/", gorest.Handle())
 	http.ListenAndServe(listen, nil)

@@ -274,6 +274,7 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx.request = r
 		ctx.xsrftoken = strings.TrimPrefix(authkey, "Bearer ")
 		ctx.sessData.relSessionData = make(map[string]interface{})
+		ctx.sessData.relSessionData["Host"] = r.Host
 
 		rb := prepareServe(ctx, ep, args, queryArgs)
 

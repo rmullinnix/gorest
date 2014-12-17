@@ -33,7 +33,7 @@ type Documentor struct {
 	Document func(string, map[string]ServiceMetaData, map[string]EndPointStruct)(interface{})
 }
 
-//Registers an Hypermedia Documentor for the specified mime type
+//Registers an Documentor for the specified mime type
 func RegisterDocumentor(mime string, dec *Documentor) {
 	if documentors == nil {
 		documentors = make(map[string]*Documentor, 0)

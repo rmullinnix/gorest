@@ -265,14 +265,6 @@ func addMimeType(mimeType string) bool {
 		}
 	}
 
-	if GetHypermediaDecorator(mimeType) == nil {
-		if strings.Contains(mimeType, "siren") {
-			RegisterHypermediaDecorator(mimeType, NewSirenDecorator())
-		} else if strings.Contains(mimeType, "hal+") {
-			RegisterHypermediaDecorator(mimeType, NewHalDecorator())
-		}
-	}
-
 	return true
 }
 

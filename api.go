@@ -115,7 +115,7 @@ func (sess SessionData) Set(key string, value interface{}) {
 
 //Returns a *http.Request associated with this Context
 func (serv RestService) Request() *http.Request {
-	return serv.rb.ctx.request
+	return serv.RB().ctx.request
 }
 
 //Facilitates the construction of the response to be sent to the client.

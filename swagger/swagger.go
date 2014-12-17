@@ -322,6 +322,12 @@ func populateProperty(sf reflect.StructField) (Property, bool) {
 	if sf.Type.String() == "time.Time" {
 		prop.Type = "string"
 		prop.Format = "date-time"
+	} else if sf.Type.String() == "int" {
+		prop.Type = "integer"
+		prop.Format = "int32"
+	} else if sf.Type.String() == "float32" {
+		prop.Type = "number"
+		prop.Format = "float"
 	} else if sf.Type.Kind() == reflect.Struct {
 		parts := strings.Split(sf.Type.String(), ".")
 		if len(parts) > 1 {

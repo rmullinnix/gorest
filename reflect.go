@@ -457,11 +457,15 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 			}
 
 			// check for hypermedia decorator
-			dec := GetHypermediaDecorator(mimeType)
+			dec := GetHypermedia()
 			hidec := ret[0].Interface()
 			if dec != nil {
 				prefix := "http://" + context.request.Host
-				hidec = dec.Decorate(prefix, hidec, entities)
+				role, found := rb.Session().GetString("Role")
+				if !found {
+					role = "public"
+				}
+				hidec = dec.Decorate(mimeType, prefix, hidec, role)
 			}
 
 			rb.ctx.responseMimeType = mimeType
@@ -477,7 +481,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 				return rb
 			}
 		} else {
-			rb.SetResponseCode(http.StatusOK)
+			//rb.SetResponseCode(http.StatusOK)
 			return rb
 		}
 	}
