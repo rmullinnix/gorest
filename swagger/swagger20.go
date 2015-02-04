@@ -194,10 +194,34 @@ type ReferenceObject struct {
 // Specification Draft 4 and uses a predefined subset of it. On top of this subset,
 // there are extensions provided by this specification to allow for more complete documentation.
 type SchemaObject struct {
+	Ref		string			`json:$ref,omitempty"`
+	Title		string			`json:"title,omitempty"`
+	Description	string			`json:"description,omitempty"`
+	Type		string			`json:"type,omitempty"`
+	Format		string			`json:"format,omitempty"`
+	Required	bool			`json:"required,omitempty"`
+	Items		*SchemaObject		`json:"items,omitempty"`
+	MaxItems	int64			`json:"maxItems,omitempty"`
+	MinItems	int64			`json:"minItems,omitempty"`
+	Properties	*SchemaObject		`json:"properties,omitempty"`
+	MaxProperties	int64			`json:"maxProperties,omitempty"`
+	MinProperties	int64			`json:"minProperties,omitempty"`
+	AllOf		*SchemaObject		`json:"allOf,omitempty"`
+	Default		interface{}		`json:"default,omitempty"`
+	Maximum		float64			`json:"maximum,omitempty"`
+	ExclusiveMax	bool			`json:"exclusiveMaximum,omitempty"`
+	Minimum		float64			`json:"minimum,omitempty"`
+	ExclusiveMin	bool			`json:"exclusiveMinimum,omitempty"`
+	MaxLength	int64			`json:"maxLength,omitempty"`
+	MinLength	int64			`json:"minLength,omitempty"`
+	Pattern		string			`json:"pattern,omitempty"`
+	UniqueItems	bool			`json:"uniqueItems,omitempty"`
+	Enum		[]interface{}		`json:"enum,omitempty"`
+	MultipleOf	float64			`json:"multipleOf,omitempty"`
 	Discriminator	string			`json:"discriminator,omitempty"`
 	ReadOnly	bool			`json:"readOnly,omitempty"`
-	Xml		XMLObject		`json:"xml,omitempty"`
-	ExternalDocs	ExtDocObject		`json:"externalDocs,omitempty"`
+	Xml		*XMLObject		`json:"xml,omitempty"`
+	ExternalDocs	*ExtDocObject		`json:"externalDocs,omitempty"`
 	Example		interface{}		`json:"example,omitempty"`
 }
 
@@ -356,9 +380,12 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 
 			par.In = "body"
 			par.Name = ep.PostdataType
-			//par.Schema = ep.PostdataType
 			par.Description = ""
 			par.Required = true
+
+			var schema	SchemaObject
+			schema.Ref = "#/definitions/" + ep.PostdataType
+			par.Schema = &schema
 
 			op.Parameters = append(op.Parameters, par)
 		}
