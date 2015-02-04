@@ -94,6 +94,7 @@ func registerService(root string, h interface{}) {
 			tags := reflect.StructTag(temp)
 			_manager().root = tags.Get("root")
 			if tag := tags.Get("swagger"); tag != "" {
+				logger.Info.Println("Registered swaggere endpoint: ", tags.Get("root") + tag)
 				_manager().swaggerEP = tags.Get("root") + tag
 			}
 			

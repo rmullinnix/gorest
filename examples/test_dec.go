@@ -59,7 +59,7 @@ func main() {
 
 	logger.Init("info")
 
-	gorest.RegisterDocumentor("swagger", swagger.NewSwaggerDocumentor())
+	gorest.RegisterDocumentor("swagger", swagger.NewSwaggerDocumentor("1.2"))
 	hypermedia.NewHypermediaDecorator()
 	dec := gorest.Decorator{hypermedia.Decorate}
 	gorest.RegisterHypermedia(&dec)
