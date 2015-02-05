@@ -181,7 +181,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 		if tag := tags.Get("output"); tag != "" {
 			ms.OutputType = tag
 			if strings.HasPrefix(tag, "[]") { //Check for slice/array/list types.
-				ms.outputTypeIsArray = true
+				ms.OutputTypeIsArray = true
 				ms.OutputType = ms.OutputType[2:]
 			}
 			if strings.HasPrefix(tag, "map[") { //Check for map[string]. We only handle string keyed maps!!!

@@ -95,7 +95,7 @@ type EndPointStruct struct {
 	signitureLen         int
 	paramLen             int
 	OutputType           string
-	outputTypeIsArray    bool
+	OutputTypeIsArray    bool
 	outputTypeIsMap      bool
 	PostdataType         string
 	postdataTypeIsArray  bool

@@ -23,9 +23,9 @@ type SwaggerAPI20 struct {
 	Parameters	map[string]ParameterObject	`json:"parameters,omitempty"`
 	Responses	map[string]ResponseObject	`json:"responses,omitempty"`
 	SecurityDefs	map[string]SecurityScheme	`json:"securityDefinitions,omitempty"`
-	Security	SecurityRequirement	`json:"security,omitempty"`
+	Security	*SecurityRequirement	`json:"security,omitempty"`
 	Tags		[]Tag			`json:"tags,omitempty"`
-	ExternalDocs	ExtDocObject		`json:"externalDocs,omitempty"`
+	ExternalDocs	*ExtDocObject		`json:"externalDocs,omitempty"`
 }
 
 // The object provides metadata about the API. The metadata can be used by the clients if needed,
@@ -82,7 +82,7 @@ type OperationObject struct {
 	OperationId	string			`json:"operationId"`
 	Consumes	[]string		`json:"consumes,omitempty"`
 	Produces	[]string		`json:"produces,omitempty"`
-	Parameters	[]ParameterObject	`json:"parameters"`
+	Parameters	[]ParameterObject	`json:"parameters,omitempty"`
 	Responses	map[string]ResponseObject	`json:"responses"`
 	Schemes		[]string		`json:"schemes,omitempty"`
 	Deprecated	bool			`json:"deprecated,omitempty"`
@@ -104,8 +104,8 @@ type ParameterObject struct {
 	Description	string			`json:"description,omitempty"`
 	Required	bool			`json:"required,omitempty"`
 	Schema		*SchemaObject		`json:"schema,omitempty"`
-	Type		string			`json:"type"`
-	Format		string			`json:"format"`
+	Type		string			`json:"type,omitempty"`
+	Format		string			`json:"format,omitempty"`
 	Items		*ItemsObject		`json:"items,omitempty"`
 	CollectionFormat	string		`json:"collectionFormat,omitempty"`
 	Default		interface{}		`json:"default,omitempty"`
@@ -194,16 +194,16 @@ type ReferenceObject struct {
 // Specification Draft 4 and uses a predefined subset of it. On top of this subset,
 // there are extensions provided by this specification to allow for more complete documentation.
 type SchemaObject struct {
-	Ref		string			`json:$ref,omitempty"`
+	Ref		string			`json:"$ref,omitempty"`
 	Title		string			`json:"title,omitempty"`
 	Description	string			`json:"description,omitempty"`
 	Type		string			`json:"type,omitempty"`
 	Format		string			`json:"format,omitempty"`
-	Required	bool			`json:"required,omitempty"`
+	Required	[]string		`json:"required,omitempty"`
 	Items		*SchemaObject		`json:"items,omitempty"`
 	MaxItems	int64			`json:"maxItems,omitempty"`
 	MinItems	int64			`json:"minItems,omitempty"`
-	Properties	*SchemaObject		`json:"properties,omitempty"`
+	Properties	map[string]SchemaObject	`json:"properties,omitempty"`
 	MaxProperties	int64			`json:"maxProperties,omitempty"`
 	MinProperties	int64			`json:"minProperties,omitempty"`
 	AllOf		*SchemaObject		`json:"allOf,omitempty"`
@@ -269,8 +269,8 @@ func newSpec20(basePath string, numSvcTypes int, numEndPoints int) *SwaggerAPI20
 	spec20 = new(SwaggerAPI20)
 
 	spec20.SwaggerVersion = "2.0"
-	spec20.Host = strings.TrimPrefix(basePath, "http://")
-	spec20.BasePath = ""
+	spec20.Host = strings.TrimSuffix(strings.TrimPrefix(basePath, "http://"), "/")
+	spec20.BasePath = "/"
 	spec20.Schemes = make([]string, 0)
 	spec20.Consumes = make([]string, numSvcTypes)
 	spec20.Produces = make([]string, 0)
@@ -315,7 +315,7 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 	for _, ep := range endPoints {
 		var api		PathItem
 
-		path := cleanPath(ep.Signiture)
+		path := "/" + cleanPath(ep.Signiture)
 
 		var op		OperationObject
 
@@ -393,35 +393,37 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 		spec20.Paths[path] = api
 
 		x++
-/*
+
 		methType := svcInt.Method(ep.MethodNumberInParent).Type
 		// skip the fuction class pointer
 		for i := 1; i < methType.NumIn(); i++ {
 			inType := methType.In(i)
 			if inType.Kind() == reflect.Struct {
-				if _, ok := spec20.Models[inType.Name()]; ok {
-					continue  // model already exists
+				if _, ok := spec20.Definitions[inType.Name()]; ok {
+					continue  // definition already exists
 				}
 
-				model := populateModel(inType)
+				schema := populateDefinitions(inType)
 
-				spec20.Models[model.ID] = model
+				spec20.Definitions[inType.Name()] = schema
 			}
+
+			// inType.Kind() == reflect.Slice (arrays)
 		}
 
 		for i := 0; i < methType.NumOut(); i++ {
 			outType := methType.Out(i)
 			if outType.Kind() == reflect.Struct {
-				if _, ok := spec20.Models[outType.Name()]; ok {
-					continue  // model already exists
+				if _, ok := spec20.Definitions[outType.Name()]; ok {
+					continue  // definition already exists
 				}
 
-				model := populateModel(outType)
+				schema := populateDefinitions(outType)
 
-				spec20.Models[model.ID] = model
+				spec20.Definitions[outType.Name()] = schema
 			}
+			// inType.Kind() == reflect.Slice (arrays)
 		}
-*/
 	}	
 
 	return *spec20
@@ -486,11 +488,11 @@ func populateOperationObject(tags reflect.StructTag, ep gorest.EndPointStruct) O
 	}
 
 	op.Tags = append(op.Tags, "Challenge")
-	op.Responses = populateResponseObject(tags)
+	op.Responses = populateResponseObject(tags, ep)
 	return op
 }
 
-func populateResponseObject(tags reflect.StructTag) map[string]ResponseObject {
+func populateResponseObject(tags reflect.StructTag, ep gorest.EndPointStruct) map[string]ResponseObject {
 	var responses	map[string]ResponseObject
 	var tag		string
 
@@ -504,33 +506,51 @@ func populateResponseObject(tags reflect.StructTag) map[string]ResponseObject {
 			resp.Headers = make(map[string]HeaderObject, 0);
 			cd_msg := strings.Split(parts[i], ":")
 			code := strings.TrimPrefix(cd_msg[0], "{")
-			resp.Description = strings.TrimSuffix(cd_msg[1], "}")
+			if len(cd_msg) == 2 {
+				resp.Description = strings.TrimSuffix(cd_msg[1], "}")
+			} else {
+				resp.Description = cd_msg[1]
+				
+				if cd_msg[2] == "output}" {
+					var schema	SchemaObject
+
+					if ep.OutputTypeIsArray {
+						schema.Type = "array"
+						var items	SchemaObject
+						items.Type = ep.OutputType
+						items.Format = ep.OutputType
+						schema.Items = &items
+					} else {
+						schema.Ref = "#/definitions/" + ep.OutputType
+					}
+					resp.Schema = &schema
+				}
+			}
 
 			responses[code] = resp
 		}
 	}
 	return responses
 }
-/*
-func populateDefinitions(t reflect.Type) Model {
+
+func populateDefinitions(t reflect.Type) SchemaObject {
 	var model	SchemaObject
 
-	model.ID = t.Name()
-	model.Description = ""
+	model.Description = ""			// not able to tag struct definition
 	model.Required = make([]string, 0)
-	model.Properties = make(map[string]interface{})
+	model.Properties = make(map[string]SchemaObject)
 
 	for k := 0; k < t.NumField(); k++ {
 		sMem := t.Field(k)
 		switch sMem.Type.Kind() {
 			case reflect.Slice, reflect.Array, reflect.Map:
-				prop, required := populatePropertyArray(sMem)
-				model.Properties[sMem.Name] = prop
-				if required {
-					model.Required = append(model.Required, sMem.Name)
-				}
+		//		prop, required := populatePropertyArray(sMem)
+		//		model.Properties[sMem.Name] = prop
+		//		if required {
+		//			model.Required = append(model.Required, sMem.Name)
+		//		}
 			default:
-				prop, required := populateProperty(sMem)
+				prop, required := populateDefinition(sMem)
 				model.Properties[sMem.Name] = prop
 				if required {
 					model.Required = append(model.Required, sMem.Name)
@@ -541,8 +561,8 @@ func populateDefinitions(t reflect.Type) Model {
 	return model
 }
 
-func populateProperty(sf reflect.StructField) (Property, bool) {
-	var prop	Property
+func populateDefinition(sf reflect.StructField) (SchemaObject, bool) {
+	var prop	SchemaObject
 
 	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
 	tags := reflect.StructTag(stmp)
@@ -569,9 +589,9 @@ func populateProperty(sf reflect.StructField) (Property, bool) {
 			prop.Type = parts[0]
 		}
 
-		if _, ok := spec20.Models[sf.Type.Name()]; !ok {
-			model := populateModel(sf.Type)
-			_spec20().Models[model.ID] = model
+		if _, ok := spec20.Definitions[sf.Type.Name()]; !ok {
+			schema := populateDefinitions(sf.Type)
+			_spec20().Definitions[sf.Type.Name()] = schema
 		}
 	}
 
@@ -598,7 +618,7 @@ func populateProperty(sf reflect.StructField) (Property, bool) {
 
 	return prop, required
 }
-
+/*
 func populatePropertyArray(sf reflect.StructField) (PropertyArray, bool) {
 	var prop	PropertyArray
 

@@ -246,7 +246,7 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 		//Check output param type.
 		if numOut == 1 {
 			methVal := methType.Out(0)
-			if ep.outputTypeIsArray {
+			if ep.OutputTypeIsArray {
 				if methVal.Kind() == reflect.Slice {
 					methVal = methVal.Elem() //Only convert if it is mentioned as a slice in the tags, otherwise allow for failure panic
 				} else {
@@ -285,7 +285,7 @@ func panicMethNotFound(methFound bool, ep EndPointStruct, t reflect.Type, f refl
 	var str string
 	isArr := ""
 	postIsArr := ""
-	if ep.outputTypeIsArray {
+	if ep.OutputTypeIsArray {
 		isArr = "[]"
 	}
 	if ep.outputTypeIsMap {
