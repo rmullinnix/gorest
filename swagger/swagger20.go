@@ -2,6 +2,7 @@ package swagger
 
 import (
 	"github.com/rmullinnix/gorest"
+	"github.com/rmullinnix/logger"
 	"strings"
 	"reflect"
 	"regexp"
@@ -314,8 +315,14 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 	x = 0
 	for _, ep := range endPoints {
 		var api		PathItem
+		var existing	bool
 
 		path := "/" + cleanPath(ep.Signiture)
+
+		if _, existing = spec20.Paths[path]; existing {
+			logger.Error.Println("existing path", path)
+			api = spec20.Paths[path]
+		}
 
 		var op		OperationObject
 
@@ -390,7 +397,9 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 			op.Parameters = append(op.Parameters, par)
 		}
 
-		spec20.Paths[path] = api
+//		if (!existing) {
+			spec20.Paths[path] = api
+//		}
 
 		x++
 
@@ -517,8 +526,14 @@ func populateResponseObject(tags reflect.StructTag, ep gorest.EndPointStruct) ma
 					if ep.OutputTypeIsArray {
 						schema.Type = "array"
 						var items	SchemaObject
-						items.Type = ep.OutputType
-						items.Format = ep.OutputType
+
+						if isPrimitive(ep.OutputType)  {
+							items.Type = ep.OutputType
+							items.Format = ep.OutputType
+						} else {
+							items.Ref = "#/definitions/" + ep.OutputType
+						}
+
 						schema.Items = &items
 					} else {
 						schema.Ref = "#/definitions/" + ep.OutputType
@@ -544,11 +559,11 @@ func populateDefinitions(t reflect.Type) SchemaObject {
 		sMem := t.Field(k)
 		switch sMem.Type.Kind() {
 			case reflect.Slice, reflect.Array, reflect.Map:
-		//		prop, required := populatePropertyArray(sMem)
-		//		model.Properties[sMem.Name] = prop
-		//		if required {
-		//			model.Required = append(model.Required, sMem.Name)
-		//		}
+				prop, required := populateDefinitionArray(sMem)
+				model.Properties[sMem.Name] = prop
+				if required {
+					model.Required = append(model.Required, sMem.Name)
+				}
 			default:
 				prop, required := populateDefinition(sMem)
 				model.Properties[sMem.Name] = prop
@@ -618,27 +633,38 @@ func populateDefinition(sf reflect.StructField) (SchemaObject, bool) {
 
 	return prop, required
 }
-/*
-func populatePropertyArray(sf reflect.StructField) (PropertyArray, bool) {
-	var prop	PropertyArray
+
+func populateDefinitionArray(sf reflect.StructField) (SchemaObject, bool) {
+	var prop	SchemaObject
 
 	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
 	tags := reflect.StructTag(stmp)
 	prop.Type = "array"
 
+	var items	SchemaObject
+	var itemType	string
+
 	// remove the package if present
 	et := sf.Type.Elem()
 	parts := strings.Split(et.String(), ".")
 	if len(parts) > 1 {
-		prop.Items.Type = parts[1]
+		itemType = parts[1]
 	} else {
-		prop.Items.Type = parts[0]
+		itemType = parts[0]
 	}
 
 	if et.Kind() == reflect.Struct {
-		if _, ok := spec20.Models[et.Name()]; !ok {
-			model := populateModel(et)
-			_spec20().Models[model.ID] = model
+		items.Ref = "#/definitions/" + itemType
+	} else {
+		items.Type = itemType
+	}
+
+	prop.Items = &items
+
+	if et.Kind() == reflect.Struct {
+		if _, ok := spec20.Definitions[et.Name()]; !ok {
+			model := populateDefinitions(et)
+			_spec20().Definitions[et.Name()] = model
 		}
 	}
 
@@ -661,4 +687,3 @@ func populatePropertyArray(sf reflect.StructField) (PropertyArray, bool) {
 
 	return prop, required
 }
-*/
