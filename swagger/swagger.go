@@ -5,7 +5,13 @@ import (
 	"strings"
 )
 
-var primitives		map[string]string
+type dataType struct {
+	swtype		string
+	swformat	string
+	primitive	bool
+}
+
+var primitives		map[string]dataType
 
 // creates a new Swagger Documentor
 //   versions supported - 1.2 and 2.0
@@ -18,19 +24,20 @@ func NewSwaggerDocumentor(version string) *gorest.Documentor {
 		doc = gorest.Documentor{swaggerDocumentor20}
 	}
 
-	primitives = make(map[string]string)
+	primitives = make(map[string]dataType)
 
-	primitives["int32"] = "integer"
-	primitives["int64"] = "long"
-	primitives["uint32"] = "integer"
-	primitives["uint64"] = "long"
-	primitives["float32"] = "float"
-	primitives["float64"] = "float"
-	primitives["string"] = "string"
-	primitives["bool"] = "boolean"
-	primitives["date"] = "date"
-	primitives["time"] = "dateTime"
-	primitives["byte"] = "byte"
+	primitives["int32"] = dataType{"integer", "int32", true}
+	primitives["int64"] = dataType{"long", "int64", true}
+	primitives["uint32"] = dataType{"integer", "int32", true}
+	primitives["uint64"] = dataType{"long", "int64", true}
+	primitives["float32"] = dataType{"number", "float", true} 
+	primitives["float64"] = dataType{"number", "float", true}
+	primitives["string"] = dataType{"string", "", true}
+	primitives["bool"] = dataType{"boolean", "", true}
+	primitives["date"] = dataType{"string", "date", true}
+	primitives["time.Time"] = dataType{"string", "dateTime", true}
+	primitives["byte"] = dataType{"string", "byte", true}
+	primitives["interface {}"] = dataType{"object", "object", true}
 
         return &doc
 }
@@ -52,4 +59,13 @@ func cleanPath(inPath string) string {
 func isPrimitive(varType string) bool {
 	_, found := primitives[varType]
 	return found
+}
+
+func primitiveFormat(varType string) (string, string) {
+	item, found := primitives[varType]
+	if found {
+		return item.swtype, item.swformat
+	} else {
+		return varType, ""
+	}
 }

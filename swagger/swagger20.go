@@ -12,21 +12,21 @@ import (
 // This is the root document object for the API specification. It combines what previously was
 // the Resource Listing and API Declaration (version 1.2 and earlier) together into one document.
 type SwaggerAPI20 struct {
-	SwaggerVersion	string			`json:"swagger"`
+	SwaggerVersion	string			`json:"swagger" sw.required:"true" sw.description:"Specifies the Swagger Specification version being used. It can be used by the Swagger UI and other clients to interpret the API listing. The value MUST be 2.0."`
 	Info		InfoObject		`json:"info"`
-	Host		string			`json:"host"`
-	BasePath	string			`json:"basePath"`
-	Schemes		[]string		`json:"schemes,omitempty"`
-	Consumes	[]string		`json:"consumes"`
-	Produces	[]string		`json:"produces"`
-	Paths		map[string]PathItem	`json:"paths"`
-	Definitions	map[string]SchemaObject	`json:"definitions"`
-	Parameters	map[string]ParameterObject	`json:"parameters,omitempty"`
-	Responses	map[string]ResponseObject	`json:"responses,omitempty"`
-	SecurityDefs	map[string]SecurityScheme	`json:"securityDefinitions,omitempty"`
-	Security	*SecurityRequirement	`json:"security,omitempty"`
-	Tags		[]Tag			`json:"tags,omitempty"`
-	ExternalDocs	*ExtDocObject		`json:"externalDocs,omitempty"`
+	Host		string			`json:"host" sw.description:"The host (name or ip) serving the API. This MUST be the host only and does not include the scheme nor sub-paths. It MAY include a port. If the host is not included, the host serving the documentation is to be used (including the port). The host does not support path templating."`
+	BasePath	string			`json:"basePath" sw.required:"true" sw.description:"The base path on which the API is served, which is relative to the host. If it is not included, the API is served directly under the host. The value MUST start with a leading slash (/). The basePath does not support path templating."`
+	Schemes		[]string		`json:"schemes,omitempty" sw.description:"The transfer protocol of the API. Values MUST be from the list: http, https, ws, wss. If the schemes is not included, the default scheme to be used is the one used to access the specification."`
+	Consumes	[]string		`json:"consumes" sw.description:"A list of MIME types the APIs can consume. This is global to all APIs but can be overridden on specific API calls. Value MUST be as described under Mime Types."`
+	Produces	[]string		`json:"produces" sw.description:"A list of MIME types the APIs can produce. This is global to all APIs but can be overridden on specific API calls. Value MUST be as described under Mime Types."`
+	Paths		map[string]PathItem	`json:"paths" sw.required:"true" sw.description:"The available paths and operations for the API."`
+	Definitions	map[string]SchemaObject	`json:"definitions" sw.description:An object to hold data types produced and consumed by operations."`
+	Parameters	map[string]ParameterObject	`json:"parameters,omitempty" sw.description:"An object to hold parameters that can be used across operations. This property does not define global parameters for all operations."`
+	Responses	map[string]ResponseObject	`json:"responses,omitempty" sw.description:"An object to hold responses that can be used across operations. This property does not define global responses for all operations."`
+	SecurityDefs	map[string]SecurityScheme	`json:"securityDefinitions,omitempty" sw.description:"Security scheme definitions that can be used across the specification."`
+	Security	*SecurityRequirement	`json:"security,omitempty" sw.description:"A declaration of which security schemes are applied for the API as a whole. The list of values describes alternative security schemes that can be used (that is, there is a logical OR between the security requirements). Individual operations can override this definition."`
+	Tags		[]Tag			`json:"tags,omitempty" sw.description:"A list of tags used by the specification with additional metadata. The order of the tags can be used to reflect on their order by the parsing tools. Not all tags that are used by the Operation Object must be declared. The tags that are not declared may be organized randomly or based on the tools' logic. Each tag name in the list MUST be unique."`
+	ExternalDocs	*ExtDocObject		`json:"externalDocs,omitempty" sw.description:"Additional external documentation."`
 }
 
 // The object provides metadata about the API. The metadata can be used by the clients if needed,
@@ -114,11 +114,11 @@ type ParameterObject struct {
 	ExclusiveMax	bool			`json:"exclusiveMaximum,omitempty"`
 	Minimum		float64			`json:"minimum,omitempty"`
 	ExclusiveMin	bool			`json:"exclusiveMinimum,omitempty"`
-	MaxLength	int64			`json:"maxLength,omitempty"`
-	MinLength	int64			`json:"minLength,omitempty"`
+	MaxLength	int32			`json:"maxLength,omitempty"`
+	MinLength	int32			`json:"minLength,omitempty"`
 	Pattern		string			`json:"pattern,omitempty"`
-	MaxItems	int64			`json:"maxItems,omitempty"`
-	MinItems	int64			`json:"minItems,omitempty"`
+	MaxItems	int32			`json:"maxItems,omitempty"`
+	MinItems	int32			`json:"minItems,omitempty"`
 	UniqueItems	bool			`json:"uniqueItems,omitempty"`
 	Enum		[]interface{}		`json:"enum,omitempty"`
 	MultipleOf	float64			`json:"multipleOf,omitempty"`
@@ -136,11 +136,11 @@ type ItemsObject struct {
 	ExclusiveMax	bool			`json:"exclusiveMaximum,omitempty"`
 	Minimum		float64			`json:"minimum,omitempty"`
 	ExclusiveMin	bool			`json:"exclusiveMinimum,omitempty"`
-	MaxLength	int64			`json:"maxLength,omitempty"`
-	MinLength	int64			`json:"minLength,omitempty"`
+	MaxLength	int32			`json:"maxLength,omitempty"`
+	MinLength	int32			`json:"minLength,omitempty"`
 	Pattern		string			`json:"pattern,omitempty"`
-	MaxItems	int64			`json:"maxItems,omitempty"`
-	MinItems	int64			`json:"minItems,omitempty"`
+	MaxItems	int32			`json:"maxItems,omitempty"`
+	MinItems	int32			`json:"minItems,omitempty"`
 	UniqueItems	bool			`json:"uniqueItems,omitempty"`
 	Enum		[]interface{}		`json:"enum,omitempty"`
 	MultipleOf	float64			`json:"multipleOf,omitempty"`
@@ -173,11 +173,11 @@ type HeaderObject struct {
 	ExclusiveMax	bool			`json:"exclusiveMaximum,omitempty"`
 	Minimum		float64			`json:"minimum,omitempty"`
 	ExclusiveMin	bool			`json:"exclusiveMinimum"`
-	MaxLength	int64			`json:"maxLength,omitempty"`
-	MinLength	int64			`json:"minLength,omitempty"`
+	MaxLength	int32			`json:"maxLength,omitempty"`
+	MinLength	int32			`json:"minLength,omitempty"`
 	Pattern		string			`json:"pattern,omitempty"`
-	MaxItems	int64			`json:"maxItems,omitempty"`
-	MinItems	int64			`json:"minItems,omitempty"`
+	MaxItems	int32			`json:"maxItems,omitempty"`
+	MinItems	int32			`json:"minItems,omitempty"`
 	UniqueItems	bool			`json:"uniqueItems,omitempty"`
 	Enum		[]interface{}		`json:"enum,omitempty"`
 	MultipleOf	float64			`json:"multipleOf,omitempty"`
@@ -202,19 +202,19 @@ type SchemaObject struct {
 	Format		string			`json:"format,omitempty"`
 	Required	[]string		`json:"required,omitempty"`
 	Items		*SchemaObject		`json:"items,omitempty"`
-	MaxItems	int64			`json:"maxItems,omitempty"`
-	MinItems	int64			`json:"minItems,omitempty"`
+	MaxItems	int32			`json:"maxItems,omitempty"`
+	MinItems	int32			`json:"minItems,omitempty"`
 	Properties	map[string]SchemaObject	`json:"properties,omitempty"`
-	MaxProperties	int64			`json:"maxProperties,omitempty"`
-	MinProperties	int64			`json:"minProperties,omitempty"`
+	MaxProperties	int32			`json:"maxProperties,omitempty"`
+	MinProperties	int32			`json:"minProperties,omitempty"`
 	AllOf		*SchemaObject		`json:"allOf,omitempty"`
 	Default		interface{}		`json:"default,omitempty"`
 	Maximum		float64			`json:"maximum,omitempty"`
 	ExclusiveMax	bool			`json:"exclusiveMaximum,omitempty"`
 	Minimum		float64			`json:"minimum,omitempty"`
 	ExclusiveMin	bool			`json:"exclusiveMinimum,omitempty"`
-	MaxLength	int64			`json:"maxLength,omitempty"`
-	MinLength	int64			`json:"minLength,omitempty"`
+	MaxLength	int32			`json:"maxLength,omitempty"`
+	MinLength	int32			`json:"minLength,omitempty"`
 	Pattern		string			`json:"pattern,omitempty"`
 	UniqueItems	bool			`json:"uniqueItems,omitempty"`
 	Enum		[]interface{}		`json:"enum,omitempty"`
@@ -495,9 +495,13 @@ func populateOperationObject(tags reflect.StructTag, ep gorest.EndPointStruct) O
 	if op.OperationId == "" {
 		op.OperationId = ep.Name
 	}
+	if tag := tags.Get("sw.tags"); tag != "" {
+		parts := strings.Split(tag, ",")
+		op.Tags = append(op.Tags, parts...)
+	}
 
-	op.Tags = append(op.Tags, "Challenge")
 	op.Responses = populateResponseObject(tags, ep)
+
 	return op
 }
 
@@ -564,6 +568,12 @@ func populateDefinitions(t reflect.Type) SchemaObject {
 				if required {
 					model.Required = append(model.Required, sMem.Name)
 				}
+			case reflect.Ptr:
+				prop, required := populateDefinitionPtr(sMem)
+				model.Properties[sMem.Name] = prop
+				if required {
+					model.Required = append(model.Required, sMem.Name)
+				}
 			default:
 				prop, required := populateDefinition(sMem)
 				model.Properties[sMem.Name] = prop
@@ -581,22 +591,8 @@ func populateDefinition(sf reflect.StructField) (SchemaObject, bool) {
 
 	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
 	tags := reflect.StructTag(stmp)
-	if sf.Type.String() == "bool" {
-		prop.Type = "boolean"
-	} else {
-		prop.Type = sf.Type.String()
-	}
 
-	if sf.Type.String() == "time.Time" {
-		prop.Type = "string"
-		prop.Format = "date-time"
-	} else if sf.Type.String() == "int" {
-		prop.Type = "integer"
-		prop.Format = "int32"
-	} else if sf.Type.String() == "float32" {
-		prop.Type = "number"
-		prop.Format = "float"
-	} else if sf.Type.Kind() == reflect.Struct {
+	if sf.Type.Kind() == reflect.Struct {
 		parts := strings.Split(sf.Type.String(), ".")
 		if len(parts) > 1 {
 			prop.Type = parts[1]
@@ -608,6 +604,8 @@ func populateDefinition(sf reflect.StructField) (SchemaObject, bool) {
 			schema := populateDefinitions(sf.Type)
 			_spec20().Definitions[sf.Type.Name()] = schema
 		}
+	} else {
+		prop.Type, prop.Format = primitiveFormat(sf.Type.String())
 	}
 
 	var tag         string
@@ -648,9 +646,9 @@ func populateDefinitionArray(sf reflect.StructField) (SchemaObject, bool) {
 	et := sf.Type.Elem()
 	parts := strings.Split(et.String(), ".")
 	if len(parts) > 1 {
-		itemType = parts[1]
+		items.Type, _ = primitiveFormat(parts[1])
 	} else {
-		itemType = parts[0]
+		items.Type, _ = primitiveFormat(parts[0])
 	}
 
 	if et.Kind() == reflect.Struct {
@@ -663,6 +661,9 @@ func populateDefinitionArray(sf reflect.StructField) (SchemaObject, bool) {
 
 	if et.Kind() == reflect.Struct {
 		if _, ok := spec20.Definitions[et.Name()]; !ok {
+			// set placeholder to prevent deal with recursive structures
+			var placeHolder         SchemaObject
+			_spec20().Definitions[et.Name()] = placeHolder
 			model := populateDefinitions(et)
 			_spec20().Definitions[et.Name()] = model
 		}
@@ -684,6 +685,46 @@ func populateDefinitionArray(sf reflect.StructField) (SchemaObject, bool) {
                 	required = true
 		}
         }
+
+	return prop, required
+}
+
+func populateDefinitionPtr(sf reflect.StructField) (SchemaObject, bool) {
+	var prop        SchemaObject
+
+	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
+	tags := reflect.StructTag(stmp)
+
+	// remove the package if present
+	et := sf.Type.Elem()
+	parts := strings.Split(et.String(), ".")
+	if len(parts) > 1 {
+		prop.Type = parts[1]
+	} else {
+		prop.Type = parts[0]
+	}
+
+	if et.Kind() == reflect.Struct {
+		if _, ok := spec20.Definitions[et.Name()]; !ok {
+			var placeHolder         SchemaObject
+			_spec20().Definitions[et.Name()] = placeHolder
+			model := populateDefinitions(et)
+			_spec20().Definitions[et.Name()] = model
+		}
+	}
+
+	prop.Format = prop.Type
+
+	if tag := tags.Get("sw.description"); tag != "" {
+		prop.Description = tag
+	}
+
+	required := false
+	if tag := tags.Get("sw.required"); tag != "" {
+		if tag == "true" {
+			required = true
+		}
+	}
 
 	return prop, required
 }

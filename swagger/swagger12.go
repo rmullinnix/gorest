@@ -2,6 +2,7 @@ package swagger
 
 import (
 	"github.com/rmullinnix/gorest"
+	"github.com/rmullinnix/logger"
 	"strings"
 	"reflect"
 	"regexp"
@@ -163,7 +164,11 @@ func swaggerDocumentor12(basePath string, svcTypes map[string]gorest.ServiceMeta
 		}
 
 		op.Method = ep.RequestMethod
-		op.Type = ep.OutputType
+		if strings.Index(ep.OutputType, ".") > 0 {
+			op.Type = ep.OutputType[strings.Index(ep.OutputType, ".")+1:]
+		} else {
+			op.Type = ep.OutputType
+		}
 		op.Parameters = make([]Parameter, len(ep.Params) + len(ep.QueryParams))
 		op.Authorizations = make([]Authorization, 0)
 		pnum := 0
@@ -282,6 +287,13 @@ func populateModel(t reflect.Type) Model {
 				if required {
 					model.Required = append(model.Required, sMem.Name)
 				}
+			case reflect.Ptr:
+				logger.Error.Println("Ptr ", sMem.Name)
+				prop, required := populatePropertyPtr(sMem)
+				model.Properties[sMem.Name] = prop
+				if required {
+					model.Required = append(model.Required, sMem.Name)
+				}
 			default:
 				prop, required := populateProperty(sMem)
 				model.Properties[sMem.Name] = prop
@@ -299,22 +311,8 @@ func populateProperty(sf reflect.StructField) (Property, bool) {
 
 	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
 	tags := reflect.StructTag(stmp)
-	if sf.Type.String() == "bool" {
-		prop.Type = "boolean"
-	} else {
-		prop.Type = sf.Type.String()
-	}
 
-	if sf.Type.String() == "time.Time" {
-		prop.Type = "string"
-		prop.Format = "date-time"
-	} else if sf.Type.String() == "int" {
-		prop.Type = "integer"
-		prop.Format = "int32"
-	} else if sf.Type.String() == "float32" {
-		prop.Type = "number"
-		prop.Format = "float"
-	} else if sf.Type.Kind() == reflect.Struct {
+	if sf.Type.Kind() == reflect.Struct {
 		parts := strings.Split(sf.Type.String(), ".")
 		if len(parts) > 1 {
 			prop.Type = parts[1]
@@ -326,6 +324,8 @@ func populateProperty(sf reflect.StructField) (Property, bool) {
 			model := populateModel(sf.Type)
 			_spec12().Models[model.ID] = model
 		}
+	} else {
+		prop.Type, prop.Format = primitiveFormat(sf.Type.String())
 	}
 
 	var tag         string
@@ -363,13 +363,15 @@ func populatePropertyArray(sf reflect.StructField) (PropertyArray, bool) {
 	et := sf.Type.Elem()
 	parts := strings.Split(et.String(), ".")
 	if len(parts) > 1 {
-		prop.Items.Type = parts[1]
+		prop.Items.Type, _ = primitiveFormat(parts[1])
 	} else {
-		prop.Items.Type = parts[0]
+		prop.Items.Type, _ = primitiveFormat(parts[0])
 	}
 
 	if et.Kind() == reflect.Struct {
 		if _, ok := spec12.Models[et.Name()]; !ok {
+			var placeHolder		Model
+			_spec12().Models[et.Name()] = placeHolder
 			model := populateModel(et)
 			_spec12().Models[model.ID] = model
 		}
@@ -387,6 +389,46 @@ func populatePropertyArray(sf reflect.StructField) (PropertyArray, bool) {
 
 	required := false
         if tag = tags.Get("sw.required"); tag != "" {
+		if tag == "true" {
+                	required = true
+		}
+        }
+
+	return prop, required
+}
+
+func populatePropertyPtr(sf reflect.StructField) (Property, bool) {
+	var prop	Property
+
+	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
+	tags := reflect.StructTag(stmp)
+
+	// remove the package if present
+	et := sf.Type.Elem()
+	parts := strings.Split(et.String(), ".")
+	if len(parts) > 1 {
+		prop.Type = parts[1]
+	} else {
+		prop.Type = parts[0]
+	}
+
+	if et.Kind() == reflect.Struct {
+		if _, ok := spec12.Models[et.Name()]; !ok {
+			var placeHolder		Model
+			_spec12().Models[et.Name()] = placeHolder
+			model := populateModel(et)
+			_spec12().Models[model.ID] = model
+		}
+	}
+
+	prop.Format = prop.Type
+
+        if tag := tags.Get("sw.description"); tag != "" {
+                prop.Description = tag
+        }
+
+	required := false
+        if tag := tags.Get("sw.required"); tag != "" {
 		if tag == "true" {
                 	required = true
 		}

@@ -246,6 +246,7 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 		//Check output param type.
 		if numOut == 1 {
 			methVal := methType.Out(0)
+
 			if ep.OutputTypeIsArray {
 				if methVal.Kind() == reflect.Slice {
 					methVal = methVal.Elem() //Only convert if it is mentioned as a slice in the tags, otherwise allow for failure panic
@@ -276,8 +277,10 @@ func typeNamesEqual(methVal reflect.Type, name2 string) bool {
 	if strings.Index(name2, ".") == -1 {
 		return methVal.Name() == name2
 	}
-	fullName := strings.Replace(methVal.PkgPath(), "/", ".", -1) + "." + methVal.Name()
-	return fullName == name2
+	//fullName := strings.Replace(methVal.PkgPath(), "/", ".", -1) + "." + methVal.Name()
+	abbrevName := name2[strings.Index(name2, ".") + 1:]
+	logger.Error.Println("abbrev ", abbrevName, "name2 ", name2, "methval ", methVal.Name())
+	return abbrevName == methVal.Name()
 }
 
 func panicMethNotFound(methFound bool, ep EndPointStruct, t reflect.Type, f reflect.StructField, methodName string) string {
