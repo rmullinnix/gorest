@@ -640,21 +640,24 @@ func populateDefinitionArray(sf reflect.StructField) (SchemaObject, bool) {
 	prop.Type = "array"
 
 	var items	SchemaObject
-	var itemType	string
 
 	// remove the package if present
 	et := sf.Type.Elem()
 	parts := strings.Split(et.String(), ".")
+	name := ""
 	if len(parts) > 1 {
 		items.Type, _ = primitiveFormat(parts[1])
+		name = parts[1]
 	} else {
 		items.Type, _ = primitiveFormat(parts[0])
+		name = parts[0]
 	}
 
 	if et.Kind() == reflect.Struct {
-		items.Ref = "#/definitions/" + itemType
+		items.Type = ""
+		items.Ref = "#/definitions/" + name
 	} else {
-		items.Type = itemType
+		items.Type = items.Type
 	}
 
 	prop.Items = &items

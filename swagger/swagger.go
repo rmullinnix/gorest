@@ -66,6 +66,6 @@ func primitiveFormat(varType string) (string, string) {
 	if found {
 		return item.swtype, item.swformat
 	} else {
-		return varType, ""
+		return "object", ""
 	}
 }
