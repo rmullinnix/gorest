@@ -285,7 +285,6 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 
 func prepSecurityMetaData(tags reflect.StructTag) SecurityStruct {
 	secDef := new(SecurityStruct)	
-	secDef.Location = "header"
 	secDef.Scope = make([]string, 0)
 
 	if tag := tags.Get("mode"); tag != "" {
