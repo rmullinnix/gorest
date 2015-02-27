@@ -89,6 +89,7 @@ const (
 	errorString_UniqueRoot = "Variable length endpoints can only be mounted on a unique root. Root already used: %s <> %s"
 	errorString_Gzip = "Service has invalid gzip value. Defaulting to off settings! %s"
 )
+
 func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, name string) ServiceMetaData {
 	md := new(ServiceMetaData)
 
@@ -102,13 +103,20 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 	}
 	logger.Info.Println("All EndPoints for service [", name, "] , registered under root path: ", md.Root)
 
+	md.ConsumesMime = make([]string, 0)
 	if tag = tags.Get("consumes"); tag == "" {
 		tag = Application_Json // Default
+		md.ConsumesMime = append(md.ConsumesMime, tag)
+	} else {
+		cons := strings.Split(tag, ",")
+		md.ConsumesMime = append(md.ConsumesMime, cons...)
 	}
-	md.ConsumesMime = tag
 
-	if !addMimeType(tag) {
-		logger.Error.Fatalf(errorString_MarshalMimeType, tag)
+	for i := 0; i < len(md.ConsumesMime); i++ {
+		mimeType := md.ConsumesMime[i]
+		if !addMimeType(mimeType) {
+			logger.Error.Fatalf(errorString_MarshalMimeType, mimeType)
+		}
 	}
 
 	md.ProducesMime = make([]string, 0)
@@ -123,10 +131,9 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 	for i := 0; i < len(md.ProducesMime); i++ {
 		mimeType := md.ProducesMime[i]
 		if !addMimeType(mimeType) {
-			logger.Error.Fatalf(errorString_MarshalMimeType, tag)
+			logger.Error.Fatalf(errorString_MarshalMimeType, mimeType)
 		}
 	}
-
 
 	if tag = tags.Get("realm"); tag != "" {
 		md.realm = tag
@@ -218,17 +225,35 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 			ms.role = tag
 		}
 
-		if tag := tags.Get("consumes"); tag != "" {
-			ms.overrideConsumesMime = tag
-			if !addMimeType(tag) {
-				logger.Error.Panicf(errorString_MarshalMimeType, tag)
+		ms.ConsumesMime = make([]string, 0)
+		if tag = tags.Get("consumes"); tag == "" {
+			tag = Application_Json // Default
+			ms.ConsumesMime = append(ms.ConsumesMime, tag)
+		} else {
+			cons := strings.Split(tag, ",")
+			ms.ConsumesMime = append(ms.ConsumesMime, cons...)
+		}
+
+		for i := 0; i < len(ms.ConsumesMime); i++ {
+			mimeType := ms.ConsumesMime[i]
+			if !addMimeType(mimeType) {
+				logger.Error.Fatalf(errorString_MarshalMimeType, mimeType)
 			}
 		}
 
-		if tag := tags.Get("produces"); tag != "" {
-			ms.overrideProducesMime = tag
-			if !addMimeType(tag) {
-				logger.Error.Panicf(errorString_MarshalMimeType, tag)
+		ms.ProducesMime = make([]string, 0)
+		if tag = tags.Get("produces"); tag == "" {
+			tag = Application_Json // Default
+			ms.ProducesMime = append(ms.ProducesMime, tag)
+		} else {
+			prods := strings.Split(tag, ",")
+			ms.ProducesMime = append(ms.ProducesMime, prods...)
+		}
+
+		for i := 0; i < len(ms.ProducesMime); i++ {
+			mimeType := ms.ProducesMime[i]
+			if !addMimeType(mimeType) {
+				logger.Error.Fatalf(errorString_MarshalMimeType, mimeType)
 			}
 		}
 
@@ -246,12 +271,56 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 			ms.allowGzip = 2
 		}
 
+		if tag := tags.Get("security"); tag != "" {
+			ms.SecurityScheme = tag
+		}
+
 		parseParams(ms)
 		return *ms
 	}
 
 	logger.Error.Fatalln(errorString_EndpointDecl)
 	return *ms //Should not get here
+}
+
+func prepSecurityMetaData(tags reflect.StructTag) SecurityStruct {
+	secDef := new(SecurityStruct)	
+	secDef.Location = "header"
+	secDef.Scope = make([]string, 0)
+
+	if tag := tags.Get("mode"); tag != "" {
+		secDef.Mode = tag
+	}
+
+	if tag := tags.Get("location"); tag != "" {
+		secDef.Location = tag
+	}
+
+	if tag := tags.Get("name"); tag != "" {
+		secDef.Name = tag
+	}
+
+	if tag := tags.Get("prefix"); tag != "" {
+		secDef.Prefix = tag
+	}
+
+	if tag := tags.Get("flow"); tag != "" {
+		secDef.Flow = tag
+	}
+
+	if tag := tags.Get("authURL"); tag != "" {
+		secDef.AuthURL = tag
+	}
+
+	if tag := tags.Get("tokenURL"); tag != "" {
+		secDef.TokenURL = tag
+	}
+	if tag := tags.Get("scope"); tag != "" {
+		scope := strings.Split(tag, ",")
+		secDef.Scope = append(secDef.Scope, scope...)
+	}
+
+	return *secDef
 }
 
 func addMimeType(mimeType string) bool {

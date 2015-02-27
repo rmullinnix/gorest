@@ -91,6 +91,7 @@ func interfaceToBytes(i interface{}, mime string) (io.ReadCloser, error) {
 func Unmarshal(buf *bytes.Buffer, i interface{}, mime string) error {
 	return bytesToInterface(buf, i, mime)
 }
+
 func bytesToInterface(buf *bytes.Buffer, i interface{}, mime string) error {
 	marshalType := mime
 

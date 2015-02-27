@@ -295,7 +295,7 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 	var svcInt 	reflect.Type 
 	for _, st := range svcTypes {
 		spec20.Produces = append(spec20.Produces, st.ProducesMime...)
-		spec20.Consumes[x] = st.ConsumesMime
+		spec20.Consumes = append(spec20.Consumes, st.ConsumesMime...)
 	
         	svcInt = reflect.TypeOf(st.Template)
 
@@ -332,8 +332,8 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 			op = populateOperationObject(tags, ep)
 		}
 
-		op.Consumes = spec20.Consumes
-		op.Produces = spec20.Produces
+		op.Consumes = append(op.Consumes, ep.ConsumesMime...)
+		op.Produces = append(op.Produces, ep.ProducesMime...)
 
 		switch (ep.RequestMethod) {
 		case "GET":

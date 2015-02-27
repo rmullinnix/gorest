@@ -19,7 +19,7 @@ type SwaggerAPI12 struct {
 	Models		map[string]Model	`json:"models"`
 	Produces	[]string		`json:"produces"`
 	Consumes	[]string		`json:"consumes"`
-	Authorizations	map[string]Authorization `json:"authorizations"`
+	Authorizations	*Auths			`json:"authorizations,omitempty"`
 }
 
 type API struct {
@@ -34,7 +34,7 @@ type Operation struct {
 	Summary		string			`json:"summary,omitempty"`
 	Notes		string			`json:"notes,omitempty"`
 	Nickname	string			`json:"nickname"`
-	Authorizations	[]Authorization		`json:"authorizations"`
+	Authorizations	*Auths			`json:"authorizations"`
 	Parameters	[]Parameter		`json:"parameters"`
 	Responses	[]ResponseMessage	`json:"responseMessages"`
 	Produces	[]string		`json:"produces,omitempty"`
@@ -79,6 +79,10 @@ type PropertyArray struct {
 	Items		Property		`json:"items"`
 }
 
+type Auths struct {
+	Authorizations	map[string]Authorization `json:"authorizations"`
+}
+
 type Authorization struct {
 	Scope		string			`json:"scope"`
 	Description	string			`json:"description,omitempty"`
@@ -95,8 +99,8 @@ func newSpec12(basePath string, numSvcTypes int, numEndPoints int) *SwaggerAPI12
 	spec12.ResourcePath = ""
 	spec12.APIs = make([]API, numEndPoints)
 	spec12.Produces = make([]string, 0)
-	spec12.Consumes = make([]string, numSvcTypes)
-	spec12.Authorizations = make(map[string]Authorization, 0)
+	spec12.Consumes = make([]string, 0)
+//	spec12.Authorizations = make(map[string]Authorization, 0)
 	spec12.Models = make(map[string]Model, 0)
 
 	return spec12
@@ -113,7 +117,7 @@ func swaggerDocumentor12(basePath string, svcTypes map[string]gorest.ServiceMeta
 	var svcInt 	reflect.Type 
 	for _, st := range svcTypes {
 		spec12.Produces = append(spec12.Produces, st.ProducesMime...)
-		spec12.Consumes[x] = st.ConsumesMime
+		spec12.Consumes = append(spec12.Consumes, st.ConsumesMime...)
 	
         	svcInt = reflect.TypeOf(st.Template)
 
@@ -163,6 +167,9 @@ func swaggerDocumentor12(basePath string, svcTypes map[string]gorest.ServiceMeta
 			op.Responses = populateResponses(tags)
 		}
 
+		op.Produces = append(op.Produces, ep.ProducesMime...)
+		op.Consumes = append(op.Consumes, ep.ConsumesMime...)
+
 		op.Method = ep.RequestMethod
 		if strings.Index(ep.OutputType, ".") > 0 {
 			op.Type = ep.OutputType[strings.Index(ep.OutputType, ".")+1:]
@@ -170,7 +177,7 @@ func swaggerDocumentor12(basePath string, svcTypes map[string]gorest.ServiceMeta
 			op.Type = ep.OutputType
 		}
 		op.Parameters = make([]Parameter, len(ep.Params) + len(ep.QueryParams))
-		op.Authorizations = make([]Authorization, 0)
+		//op.Authorizations = make([]Authorization, 0)
 		pnum := 0
 		for j := 0; j < len(ep.Params); j++ {
 			var par		Parameter

@@ -94,7 +94,7 @@ func registerService(root string, h interface{}) {
 			tags := reflect.StructTag(temp)
 			_manager().root = tags.Get("root")
 			if tag := tags.Get("swagger"); tag != "" {
-				logger.Info.Println("Registered swaggere endpoint: ", tags.Get("root") + tag)
+				logger.Info.Println("Registered swagger endpoint: ", tags.Get("root") + tag)
 				_manager().swaggerEP = tags.Get("root") + tag
 			}
 			
@@ -103,7 +103,13 @@ func registerService(root string, h interface{}) {
 			for i := 0; i < t.NumField(); i++ {
 				f := t.Field(i)
 				if f.Name != "RestService" {
-					mapFieldsToMethods(t, f, tFullName, meta)
+					if f.Type.Name() == "EndPoint" {
+						mapFieldsToMethods(t, f, tFullName, meta)
+					} else if f.Type.Name() == "Security" {
+						temp := strings.Join(strings.Fields(string(f.Tag)), " ")
+						secDef := prepSecurityMetaData(reflect.StructTag(temp))
+						_manager().addSecurityDefinition(f.Name, secDef)
+					}
 				}
 			}
 		}
@@ -115,47 +121,47 @@ func registerService(root string, h interface{}) {
 
 func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName string, serviceRoot ServiceMetaData) {
 
-	if f.Name != "RestService" && f.Type.Name() == "EndPoint" { //TODO: Proper type checking, not by name
-		temp := strings.Join(strings.Fields(string(f.Tag)), " ")
-		ep := makeEndPointStruct(reflect.StructTag(temp), serviceRoot.Root)
-		ep.parentTypeName = typeFullName
-		ep.Name = f.Name
-		// override the endpoint with our default value for gzip
-		if ep.allowGzip == 2 {
-			if !serviceRoot.allowGzip {
-				ep.allowGzip = 0
-			} else {
-				ep.allowGzip = 1
-			}
+	temp := strings.Join(strings.Fields(string(f.Tag)), " ")
+	ep := makeEndPointStruct(reflect.StructTag(temp), serviceRoot.Root)
+	ep.parentTypeName = typeFullName
+	ep.Name = f.Name
+	// override the endpoint with our default value for gzip
+	if ep.allowGzip == 2 {
+		if !serviceRoot.allowGzip {
+			ep.allowGzip = 0
+		} else {
+			ep.allowGzip = 1
 		}
-
-		var method reflect.Method
-		methodName := strings.ToUpper(f.Name[:1]) + f.Name[1:]
-
-		methFound := false
-		methodNumberInParent := 0
-		for i := 0; i < t.NumMethod(); i++ {
-			m := t.Method(i)
-			if methodName == m.Name {
-				method = m //As long as the name is the same, we know we have found the method, since go has no overloading
-				methFound = true
-				methodNumberInParent = i
-				break
-			}
-		}
-
-		{ //Panic Checks
-			if !methFound {
-				logger.Error.Panicln("Method name not found. " + panicMethNotFound(methFound, ep, t, f, methodName))
-			}
-			if !isLegalForRequestType(method.Type, ep) {
-				logger.Error.Panicln("Parameter list not matching. " + panicMethNotFound(methFound, ep, t, f, methodName))
-			}
-		}
-		ep.MethodNumberInParent = methodNumberInParent
-		_manager().addEndPoint(ep)
-		logger.Info.Println("Registerd service:", t.Name(), " endpoint:", ep.RequestMethod, ep.Signiture)
 	}
+
+	var method reflect.Method
+	methodName := strings.ToUpper(f.Name[:1]) + f.Name[1:]
+
+	methFound := false
+	methodNumberInParent := 0
+	for i := 0; i < t.NumMethod(); i++ {
+		m := t.Method(i)
+		if methodName == m.Name {
+			method = m //As long as the name is the same, we know we have found the method, since go has no overloading
+			methFound = true
+			methodNumberInParent = i
+			break
+		}
+	}
+
+	{ //Panic Checks
+		if !methFound {
+			logger.Error.Panicln("Method name not found. " + panicMethNotFound(methFound, ep, t, f, methodName))
+		}
+		if !isLegalForRequestType(method.Type, ep) {
+			logger.Error.Panicln("Parameter list not matching. " + panicMethNotFound(methFound, ep, t, f, methodName))
+		}
+	}
+
+	ep.MethodNumberInParent = methodNumberInParent
+	_manager().addEndPoint(ep)
+
+	logger.Info.Println("Registerd service:", t.Name(), " endpoint:", ep.RequestMethod, ep.Signiture)
 }
 
 func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool) {
@@ -351,10 +357,18 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 	arrArgs := make([]reflect.Value, 0)
 
 	targetMethod := servVal.Type().Method(ep.MethodNumberInParent)
-	mime := servMeta.ConsumesMime
-	if ep.overrideConsumesMime != "" {
-		mime = ep.overrideConsumesMime
+
+	contentType := context.request.Header.Get("Content-Type")
+
+	if valid := validMime(contentType, ep.ConsumesMime, servMeta.ConsumesMime); !valid {
+		// error - can not accept request
+		rb.SetResponseCode(http.StatusBadRequest)
+		rb.SetResponseMsg("Service is not configured to accept Content-Type " + contentType)
+		return rb
 	}
+
+	mime := contentType
+
 	//For POST and PUT, make and add the first "postdata" argument to the argument list
 	if ep.RequestMethod == POST || ep.RequestMethod == PUT {
 
@@ -448,15 +462,19 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 
 			accept := context.request.Header.Get("Accept")
 
-			if mimeType = ep.overrideProducesMime; mimeType == "" {
-				mimeType = servMeta.ProducesMime[0]
-				if len(accept) > 0 {
-				 	for i := 0; i < len(servMeta.ProducesMime); i++ {
-						if strings.Contains(accept, servMeta.ProducesMime[i]) {
-							mimeType = servMeta.ProducesMime[i]
-							break
-						}
-					}
+			if len(accept) > 0 {
+				if valid := validMime(accept, ep.ProducesMime, servMeta.ProducesMime); !valid {
+					rb.SetResponseCode(http.StatusBadRequest)
+					rb.SetResponseMsg("Service does not support Accept mime type " + mime)
+					return rb
+				}
+
+				mimeType = accept
+			} else {
+				if len(ep.ProducesMime) > 0 {
+					mimeType = ep.ProducesMime[0]
+				} else {
+					mimeType = servMeta.ProducesMime[0]
 				}
 			}
 
@@ -513,4 +531,27 @@ func makeArg(data string, template reflect.Type, mime string) (reflect.Value, bo
 	}
 	
 	return reflect.ValueOf(i).Elem(), true
+}
+
+func validMime(mimeType string, epMime []string, srvMime []string) bool {
+	found := false
+	// Endpoint mime type list overrides the one defined at the server
+	// It is not a union
+	if len(epMime) > 0 {
+		for i := range epMime {
+			if mimeType == epMime[i] {
+				found = true
+				break
+			}
+		}
+	} else {
+		for i := range srvMime {
+			if mimeType == srvMime[i] {
+				found = true
+				break
+			}
+		}
+	}
+
+	return found
 }

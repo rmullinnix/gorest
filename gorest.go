@@ -104,9 +104,10 @@ type EndPointStruct struct {
 	parentTypeName       string
 	MethodNumberInParent int
 	role                 string
-	overrideProducesMime string // overrides the produces mime type
-	overrideConsumesMime string // overrides the produces mime type
+	ProducesMime 	     []string // overrides the produces mime type
+	ConsumesMime 	     []string // overrides the consumes mime type
 	allowGzip 	     int // 0 false, 1 true, 2 unitialized
+	SecurityScheme	     string // must match one of securityDef
 }
 
 type restStatus struct {
@@ -121,7 +122,7 @@ func (err restStatus) String() string {
 
 type ServiceMetaData struct {
 	Template     interface{}
-	ConsumesMime string
+	ConsumesMime []string
 	ProducesMime []string
 	Root         string
 	realm        string
@@ -135,7 +136,19 @@ type manager struct {
 	root		string
 	serviceTypes 	map[string]ServiceMetaData
 	endpoints    	map[string]EndPointStruct
+	securityDef     map[string]SecurityStruct
 	swaggerEP	string
+}
+
+type SecurityStruct struct {
+	Mode		string // basic, api_key or oauth2
+	Location	string // header or query
+	Name		string // name of query param or header element
+	Prefix		string // if auth header has a prefix (e.g., "Bearer ")
+	Flow		string
+	AuthURL		string
+	TokenURL	string
+	Scope		[]string
 }
 
 func newManager() *manager {
@@ -259,20 +272,11 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	} 
 
-	authkey := r.Header.Get("Authorization")
-	if len(authkey) > 0 {
-		if strings.Contains(authkey, "Bearer") {
-			w.Header().Set("Authorization", authkey)
-		} else {
-			authkey = ""
-		}
-	}
-
 	if ep, args, queryArgs, _, found := getEndPointByUrl(r.Method, url_); found {
 		ctx := new(Context)
 		ctx.writer = w
 		ctx.request = r
-		ctx.xsrftoken = strings.TrimPrefix(authkey, "Bearer ")
+		ctx.xsrftoken = getAuthKey(ep.SecurityScheme, queryArgs, r, w)
 		ctx.sessData.relSessionData = make(map[string]interface{})
 		ctx.sessData.relSessionData["Host"] = r.Host
 
@@ -285,6 +289,31 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("The resource in the requested path could not be found."))
 	}
+}
+
+func getAuthKey(scheme string, queryArgs map[string]string, r *http.Request, w http.ResponseWriter) string {
+	authKey := ""
+	if len(scheme) > 0 {
+		if def, found := _manager().securityDef[scheme]; found {
+			if def.Location == "header" {
+				authKey = r.Header.Get("Authorization")
+				if len(authKey) > 0 {
+					w.Header().Set("Authorization", authKey)
+					if strings.Contains(authKey, def.Prefix) {
+						authKey = strings.TrimPrefix(authKey, def.Prefix)
+					}
+				}
+			} else if def.Location == "query" {
+				if authKey, found = queryArgs[def.Name]; found {
+					if strings.Contains(authKey, def.Prefix) {
+						authKey = strings.TrimPrefix(authKey, def.Prefix)
+					}
+				}
+			}
+		}
+	}
+
+	return authKey
 }
 
 func (man *manager) getType(name string) ServiceMetaData {
@@ -303,6 +332,10 @@ func (man *manager) addType(name string, i ServiceMetaData) string {
 }
 func (man *manager) addEndPoint(ep EndPointStruct) {
 	man.endpoints[ep.RequestMethod+":"+ep.Signiture] = ep
+}
+
+func (man *manager) addSecurityDefinition(name string, secDef SecurityStruct) {
+	man.securityDef[name] = secDef
 }
 
 //Registeres the function to be used for handling all requests directed to gorest.

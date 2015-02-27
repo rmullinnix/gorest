@@ -64,6 +64,7 @@ type RestService struct {
 //	}
 //
 type EndPoint bool
+type Security bool
 
 //Returns the ResponseBuilder associated with the current Context and Request. 
 //This can be called multiple times within a service method, the same instance will be returned.
