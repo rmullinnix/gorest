@@ -155,6 +155,7 @@ func newManager() *manager {
 	man := new(manager)
 	man.serviceTypes = make(map[string]ServiceMetaData, 0)
 	man.endpoints = make(map[string]EndPointStruct, 0)
+	man.securityDef = make(map[string]SecurityStruct, 0)
 	return man
 }
 
@@ -298,10 +299,12 @@ func getAuthKey(scheme string, queryArgs map[string]string, r *http.Request, w h
 			if def.Location == "header" {
 				authKey = r.Header.Get("Authorization")
 				if len(authKey) > 0 {
+					logger.Info.Println(authKey, def.Prefix)
 					w.Header().Set("Authorization", authKey)
 					if strings.Contains(authKey, def.Prefix) {
 						authKey = strings.TrimPrefix(authKey, def.Prefix)
 					}
+					logger.Info.Println(authKey)
 				}
 			} else if def.Location == "query" {
 				if authKey, found = queryArgs[def.Name]; found {

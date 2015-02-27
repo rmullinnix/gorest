@@ -26,6 +26,7 @@ func NewSwaggerDocumentor(version string) *gorest.Documentor {
 
 	primitives = make(map[string]dataType)
 
+	primitives["int"] = dataType{"integer", "int32", true}
 	primitives["int32"] = dataType{"integer", "int32", true}
 	primitives["int64"] = dataType{"long", "int64", true}
 	primitives["uint32"] = dataType{"integer", "int32", true}
@@ -36,6 +37,7 @@ func NewSwaggerDocumentor(version string) *gorest.Documentor {
 	primitives["bool"] = dataType{"boolean", "", true}
 	primitives["date"] = dataType{"string", "date", true}
 	primitives["time.Time"] = dataType{"string", "dateTime", true}
+	primitives["Time"] = dataType{"string", "dateTime", true}
 	primitives["byte"] = dataType{"string", "byte", true}
 	primitives["interface {}"] = dataType{"object", "object", true}
 

@@ -273,7 +273,7 @@ func newSpec20(basePath string, numSvcTypes int, numEndPoints int) *SwaggerAPI20
 	spec20.Host = strings.TrimSuffix(strings.TrimPrefix(basePath, "http://"), "/")
 	spec20.BasePath = "/"
 	spec20.Schemes = make([]string, 0)
-	spec20.Consumes = make([]string, numSvcTypes)
+	spec20.Consumes = make([]string, 0)
 	spec20.Produces = make([]string, 0)
 	spec20.Paths = make(map[string]PathItem, numEndPoints)
 	spec20.Definitions = make(map[string]SchemaObject, 0)
@@ -359,8 +359,7 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 
 			par.In = "path"
 			par.Name = ep.Params[j].Name
-			par.Type = ep.Params[j].TypeName
-			par.Format = ep.Params[j].TypeName
+			par.Type, par.Format = primitiveFormat(ep.Params[j].TypeName)
 			par.Description = ""
 			par.Required = true
 
@@ -373,8 +372,7 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 
 			par.In = "query"
 			par.Name = ep.QueryParams[j].Name
-			par.Type = ep.QueryParams[j].TypeName
-			par.Format = ep.QueryParams[j].TypeName
+			par.Type, par.Format = primitiveFormat(ep.QueryParams[j].TypeName)
 			par.Description = ""
 			par.Required = false
 
@@ -591,41 +589,37 @@ func populateDefinition(sf reflect.StructField) (SchemaObject, bool) {
 
 	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
 	tags := reflect.StructTag(stmp)
+	required := false
 
 	if sf.Type.Kind() == reflect.Struct {
 		parts := strings.Split(sf.Type.String(), ".")
 		if len(parts) > 1 {
-			prop.Type = parts[1]
+			prop.Type, prop.Format = primitiveFormat(parts[1])
 		} else {
-			prop.Type = parts[0]
+			prop.Type, prop.Format = primitiveFormat(parts[0])
 		}
 
-		if _, ok := spec20.Definitions[sf.Type.Name()]; !ok {
-			schema := populateDefinitions(sf.Type)
-			_spec20().Definitions[sf.Type.Name()] = schema
+		if (prop.Type == "object")  {
+			ok := false
+			if _, ok = spec20.Definitions[sf.Type.Name()]; !ok {
+				schema := populateDefinitions(sf.Type)
+				_spec20().Definitions[sf.Type.Name()] = schema
+			}
+			prop.Ref = "#/definitions/" + sf.Type.Name()
 		}
 	} else {
 		prop.Type, prop.Format = primitiveFormat(sf.Type.String())
-	}
 
-	var tag         string
+		var tag         string
 
-        if tag = tags.Get("sw.format"); tag != "" {
-                prop.Format = tag
-        } else {
-		if prop.Format == "" {
-			prop.Format = prop.Type
-		}
-	}
+       	 	if tag = tags.Get("sw.description"); tag != "" {
+               		prop.Description = tag
+        	}
 
-        if tag = tags.Get("sw.description"); tag != "" {
-                prop.Description = tag
-        }
-
-	required := false
-        if tag = tags.Get("sw.required"); tag != "" {
-		if tag == "true" {
-                	required = true
+		if tag = tags.Get("sw.required"); tag != "" {
+			if tag == "true" {
+				required = true
+			}
 		}
         }
 

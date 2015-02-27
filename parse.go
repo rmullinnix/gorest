@@ -320,6 +320,7 @@ func prepSecurityMetaData(tags reflect.StructTag) SecurityStruct {
 		secDef.Scope = append(secDef.Scope, scope...)
 	}
 
+	logger.Info.Println(secDef)
 	return *secDef
 }
 

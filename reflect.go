@@ -360,6 +360,10 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 
 	contentType := context.request.Header.Get("Content-Type")
 
+	if contentType == "" {
+		contentType = servMeta.ConsumesMime[0]
+	}
+
 	if valid := validMime(contentType, ep.ConsumesMime, servMeta.ConsumesMime); !valid {
 		// error - can not accept request
 		rb.SetResponseCode(http.StatusBadRequest)
