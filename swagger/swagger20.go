@@ -245,16 +245,12 @@ type SecurityScheme struct {
 	Name		string			`json:"name,omitempty"`
 	In		string			`json:"in,omitempty"`
 	Flow		string			`json:"flow,omitempty"`
-	AuthorizationUrL	string		`json:"authorizationUrl,omitempty"`
+	AuthorizationUrl	string		`json:"authorizationUrl,omitempty"`
 	TokenUrl	string			`json:"tokenUrl,omitempty"`
 	Scopes		map[string]string	`json:"scopes,omitempty"`
 }
 
-type SecurityDefObject struct {
-}
-
-type SecurityRequirement struct {
-}
+type SecurityRequirement 	map[string][]string
 
 // Allows adding meta data to a single tag that is used by the Operation Object. 
 // It is not mandatory to have a Tag Object per tag used there.
@@ -288,7 +284,7 @@ func _spec20() *SwaggerAPI20 {
 	return spec20
 }
 
-func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMetaData, endPoints map[string]gorest.EndPointStruct) interface{} {
+func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMetaData, endPoints map[string]gorest.EndPointStruct, securityDef map[string]gorest.SecurityStruct) interface{} {
 	spec20 = newSpec20(basePath, len(svcTypes), len(endPoints))
 
 	x := 0
@@ -334,6 +330,13 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 
 		op.Consumes = append(op.Consumes, ep.ConsumesMime...)
 		op.Produces = append(op.Produces, ep.ProducesMime...)
+
+		if len(ep.SecurityScheme) > 0 {
+			
+			req := make(map[string][]string, 0)
+			req[ep.SecurityScheme] = make([]string, 0)
+			op.Security = append(op.Security, req)
+		}
 
 		switch (ep.RequestMethod) {
 		case "GET":
@@ -433,6 +436,20 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 		}
 	}	
 
+	for key, item := range securityDef {
+		scheme := new(SecurityScheme)
+
+		scheme.Type = item.Mode
+		scheme.Description = ""
+		scheme.Name = item.Name
+		scheme.In = item.Location
+		scheme.Flow = item.Flow
+		scheme.AuthorizationUrl = item.AuthURL
+		scheme.TokenUrl = item.TokenURL
+
+		spec20.SecurityDefs[key] = *scheme
+	}
+
 	return *spec20
 }
 
@@ -498,6 +515,7 @@ func populateOperationObject(tags reflect.StructTag, ep gorest.EndPointStruct) O
 		op.Tags = append(op.Tags, parts...)
 	}
 
+	
 	op.Responses = populateResponseObject(tags, ep)
 
 	return op

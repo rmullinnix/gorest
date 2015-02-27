@@ -265,7 +265,7 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if url_ == _manager().swaggerEP {
 		basePath := "http://" + r.Host + "/"
 		doc := GetDocumentor("swagger")
-		swagDoc := doc.Document(basePath, this.serviceTypes, this.endpoints)
+		swagDoc := doc.Document(basePath, this.serviceTypes, this.endpoints, this.securityDef)
 		data, _ := json.Marshal(swagDoc)
 		logger.SetResponseCode(http.StatusOK)
 		w.WriteHeader(http.StatusOK)

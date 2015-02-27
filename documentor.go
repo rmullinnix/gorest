@@ -30,7 +30,7 @@ var documentors map[string]*Documentor
 
 //Signiture of functions to be used as Documentors
 type Documentor struct {
-	Document func(string, map[string]ServiceMetaData, map[string]EndPointStruct)(interface{})
+	Document func(string, map[string]ServiceMetaData, map[string]EndPointStruct, map[string]SecurityStruct)(interface{})
 }
 
 //Registers an Documentor for the specified mime type

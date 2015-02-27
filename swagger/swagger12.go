@@ -110,7 +110,7 @@ func _spec12() *SwaggerAPI12 {
 	return spec12
 }
 
-func swaggerDocumentor12(basePath string, svcTypes map[string]gorest.ServiceMetaData, endPoints map[string]gorest.EndPointStruct) interface{} {
+func swaggerDocumentor12(basePath string, svcTypes map[string]gorest.ServiceMetaData, endPoints map[string]gorest.EndPointStruct, securityDef map[string]gorest.SecurityStruct) interface{} {
 	spec12 = newSpec12(basePath, len(svcTypes), len(endPoints))
 
 	x := 0

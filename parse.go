@@ -570,12 +570,12 @@ func parseQueryArgs(ep *EndPointStruct, queryPart string) (map[string]string, st
 			if pName == XSXRF_PARAM_NAME {
 				xsrft = strings.Trim(dataString, " ")
 			} else {
-				for _, par := range ep.QueryParams {
-					if par.Name == pName {
+//				for _, par := range ep.QueryParams {
+//					if par.Name == pName {
 						queryArgs[pName] = strings.Trim(dataString, " ")
-						break
-					}
-				}
+//						break
+//					}
+//				}
 			}
 
 		}
