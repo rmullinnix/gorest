@@ -168,30 +168,21 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 	cool = true
 
 	numInputIgnore := 0
-	numOut := 0
 
 	switch ep.RequestMethod {
 	case POST, PUT:
 		{
 			numInputIgnore = 2 //The first param is the struct, the second the posted object
-			numOut = 0
 		}
-	case GET:
+	case GET, DELETE, HEAD, OPTIONS:
 		{
 			numInputIgnore = 1 //The first param is the default service struct
-			numOut = 1
-		}
-	case DELETE, HEAD, OPTIONS:
-		{
-			numInputIgnore = 1 //The first param is the default service struct
-			numOut = 0
 		}
 
 	}
 
 	if (methType.NumIn() - numInputIgnore) != (ep.paramLen + len(ep.QueryParams)) {
-		cool = false
-	} else if methType.NumOut() != numOut {
+		logger.Error.Println("not cool 1")
 		cool = false
 	} else {
 		//Check the first parameter type for POST and PUT
@@ -201,6 +192,7 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 				if methVal.Kind() == reflect.Slice {
 					methVal = methVal.Elem()
 				} else {
+					logger.Error.Println("not cool 2")
 					cool = false
 					return
 				}
@@ -209,12 +201,14 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 				if methVal.Kind() == reflect.Map {
 					methVal = methVal.Elem()
 				} else {
+					logger.Error.Println("not cool 3")
 					cool = false
 					return
 				}
 			}
 
 			if !typeNamesEqual(methVal, ep.PostdataType) {
+				logger.Error.Println("not cool 4")
 				cool = false
 				return
 			}
@@ -223,6 +217,7 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 		i := numInputIgnore
 		if ep.isVariableLength {
 			if methType.NumIn() != numInputIgnore+1+len(ep.QueryParams) {
+				logger.Error.Println("not cool 5")
 				cool = false
 			}
 			cool = false
@@ -235,6 +230,7 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 		} else {
 			for ; i < methType.NumIn() && (i-numInputIgnore < ep.paramLen); i++ {
 				if !typeNamesEqual(methType.In(i), ep.Params[i-numInputIgnore].TypeName) {
+					logger.Error.Println("not cool 6.5")
 					cool = false
 					break
 				}
@@ -243,20 +239,28 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 
 		//Check the input Query param types
 		for j := 0; i < methType.NumIn() && (j < len(ep.QueryParams)); i++ {
-			if !typeNamesEqual(methType.In(i), ep.QueryParams[j].TypeName) {
+			if ep.QueryParams[j].TypeName[:2] == "[]" {
+				if methType.In(i).Elem().String() != ep.QueryParams[j].TypeName[2:] {
+					logger.Error.Println("not cool 6.7", methType.In(i).Elem(), ep.QueryParams[j].TypeName)
+					cool = false
+					break
+				}
+			} else if !typeNamesEqual(methType.In(i), ep.QueryParams[j].TypeName) {
+				logger.Error.Println("not cool 7", methType.In(i), ep.QueryParams[j].TypeName)
 				cool = false
 				break
 			}
 			j++
 		}
 		//Check output param type.
-		if numOut == 1 {
+		if methType.NumOut() > 0 {
 			methVal := methType.Out(0)
 
 			if ep.OutputTypeIsArray {
 				if methVal.Kind() == reflect.Slice {
 					methVal = methVal.Elem() //Only convert if it is mentioned as a slice in the tags, otherwise allow for failure panic
 				} else {
+					logger.Error.Println("not cool 8")
 					cool = false
 					return
 				}
@@ -265,12 +269,14 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 				if methVal.Kind() == reflect.Map {
 					methVal = methVal.Elem()
 				} else {
+					logger.Error.Println("not cool 9")
 					cool = false
 					return
 				}
 			}
 
 			if !typeNamesEqual(methVal, ep.OutputType) {
+				logger.Error.Println("not cool 10")
 				cool = false
 			}
 		}

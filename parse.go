@@ -74,7 +74,7 @@ type Param struct {
 	TypeName       string
 }
 
-var aLLOWED_PAR_TYPES = []string{"string", "int", "int32", "int64", "bool", "float32", "float64"}
+var aLLOWED_PAR_TYPES = []string{"string", "int", "int32", "int64", "bool", "float32", "float64", "[]string", "[]int"}
 
 const (
 	errorString_MarshalMimeType = "The Marshaller for mime-type:[%s], is not registered. Please register this type before registering your service."
