@@ -316,7 +316,6 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 		path := "/" + cleanPath(ep.Signiture)
 
 		if _, existing = spec20.Paths[path]; existing {
-			logger.Error.Println("existing path", path)
 			api = spec20.Paths[path]
 		}
 
@@ -376,6 +375,11 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 			par.In = "query"
 			par.Name = ep.QueryParams[j].Name
 			par.Type, par.Format = primitiveFormat(ep.QueryParams[j].TypeName)
+			if par.Type == "array" {
+				var items	ItemsObject
+				items.Type, items.Format = primitiveFormat(ep.QueryParams[j].TypeName[2:])
+				par.Items = &items
+			}
 			par.Description = ""
 			par.Required = false
 
@@ -548,15 +552,18 @@ func populateResponseObject(tags reflect.StructTag, ep gorest.EndPointStruct) ma
 						var items	SchemaObject
 
 						if isPrimitive(ep.OutputType)  {
-							items.Type = ep.OutputType
-							items.Format = ep.OutputType
+							items.Type, items.Format = primitiveFormat(ep.OutputType)
 						} else {
 							items.Ref = "#/definitions/" + ep.OutputType
 						}
 
 						schema.Items = &items
 					} else {
-						schema.Ref = "#/definitions/" + ep.OutputType
+						if isPrimitive(ep.OutputType)  {
+							schema.Type, schema.Format = primitiveFormat(ep.OutputType)
+						} else {
+							schema.Ref = "#/definitions/" + ep.OutputType
+						}
 					}
 					resp.Schema = &schema
 				}

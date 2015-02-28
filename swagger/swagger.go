@@ -67,6 +67,8 @@ func primitiveFormat(varType string) (string, string) {
 	item, found := primitives[varType]
 	if found {
 		return item.swtype, item.swformat
+	} else if varType[:2] == "[]" {
+		return "array", ""
 	} else {
 		return "object", ""
 	}
