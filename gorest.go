@@ -87,6 +87,7 @@ type EndPointStruct struct {
 	Name                 string
 	RequestMethod        string
 	Signiture            string
+	encSigniture	     string
 	muxRoot              string
 	root                 string
 	nonParamPathPart     map[int]string
@@ -137,6 +138,8 @@ type manager struct {
 	serviceTypes 	map[string]ServiceMetaData
 	endpoints    	map[string]EndPointStruct
 	securityDef     map[string]SecurityStruct
+	pathDict	map[string]int
+	pathDictIndex	int
 	swaggerEP	string
 }
 
@@ -156,6 +159,15 @@ func newManager() *manager {
 	man.serviceTypes = make(map[string]ServiceMetaData, 0)
 	man.endpoints = make(map[string]EndPointStruct, 0)
 	man.securityDef = make(map[string]SecurityStruct, 0)
+
+	man.pathDict = make(map[string]int, 0)
+	man.pathDict["bool"] = 1
+	man.pathDict["int"] = 2
+	man.pathDict["string"] = 3
+	man.pathDict["[]int"] = 4
+	man.pathDict["[]string"] = 5
+	man.pathDictIndex = 6
+
 	return man
 }
 
@@ -263,7 +275,8 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if url_ == _manager().swaggerEP {
-		basePath := "http://" + r.Host + "/"
+		basePath := "/"
+//		basePath = strings.Replace(basePath, "7676", "8080", -1)
 		doc := GetDocumentor("swagger")
 		swagDoc := doc.Document(basePath, this.serviceTypes, this.endpoints, this.securityDef)
 		data, _ := json.Marshal(swagDoc)
@@ -334,7 +347,7 @@ func (man *manager) addType(name string, i ServiceMetaData) string {
 	return name
 }
 func (man *manager) addEndPoint(ep EndPointStruct) {
-	man.endpoints[ep.RequestMethod+":"+ep.Signiture] = ep
+	man.endpoints[ep.encSigniture] = ep
 }
 
 func (man *manager) addSecurityDefinition(name string, secDef SecurityStruct) {

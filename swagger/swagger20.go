@@ -2,7 +2,6 @@ package swagger
 
 import (
 	"github.com/rmullinnix/gorest"
-	"github.com/rmullinnix/logger"
 	"strings"
 	"reflect"
 	"regexp"

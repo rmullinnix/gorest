@@ -471,16 +471,17 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 			var mimeType	string
 
 			accept := context.request.Header.Get("Accept")
+			valid := false
 
 			if len(accept) > 0 {
-				if valid := validMime(accept, ep.ProducesMime, servMeta.ProducesMime); !valid {
-					rb.SetResponseCode(http.StatusBadRequest)
-					rb.SetResponseMsg("Service does not support Accept mime type " + mime)
-					return rb
+				if valid = validMime(accept, ep.ProducesMime, servMeta.ProducesMime); valid {
+			//		rb.SetResponseCode(http.StatusBadRequest)
+			//		rb.SetResponseMsg("Service does not support Accept mime type " + mime)
+			//		return rb
+					mimeType = accept
 				}
-
-				mimeType = accept
-			} else {
+			}
+			if !valid {
 				if len(ep.ProducesMime) > 0 {
 					mimeType = ep.ProducesMime[0]
 				} else {
@@ -526,6 +527,17 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 }
 
 func makeArg(data string, template reflect.Type, mime string) (reflect.Value, bool) {
+
+	kind := template.Kind()
+	// convert array arg from string to array format before marshalling
+	if kind == reflect.Slice || kind == reflect.Array {
+		if template.Elem().Kind() == reflect.String {
+			data = "[\"" + strings.Replace(data, ",", "\",\"", -1) + "\"]"
+		} else {
+			data = "[" + data + "]"
+		}
+	}
+
 	i := reflect.New(template).Interface()
 
 	if data == "" {
@@ -536,7 +548,7 @@ func makeArg(data string, template reflect.Type, mime string) (reflect.Value, bo
 	err := bytesToInterface(buf, i, mime)
 
 	if err != nil {
-		logger.Error.Println("Error Unmarshalling data using " + mime + ". Incompatable data format in entity. (" + err.Error() + ")")
+		logger.Error.Panicln("Error Unmarshalling data using " + mime + ". Incompatable data format in entity. (" + err.Error() + ")")
 		return reflect.ValueOf(nil), false
 	}
 	

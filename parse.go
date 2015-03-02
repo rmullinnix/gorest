@@ -181,6 +181,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 		if tag := tags.Get("path"); tag != "" {
 			serviceRoot = strings.TrimRight(serviceRoot, "/")
 			ms.Signiture = serviceRoot + "/" + strings.Trim(tag, "/")
+			ms.encSigniture = encodeSigniture(ms.RequestMethod + ms.Signiture, true, false)
 		} else {
 			logger.Error.Fatalln(errorString_EndpointDecl)
 		}
@@ -283,6 +284,46 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 	return *ms //Should not get here
 }
 
+func encodeSigniture(path string, add bool, parmAsString bool) string {
+	if strings.Index(path, "?") > -1 {
+		path = path[:strings.Index(path, "?")]
+	}
+
+	parts := strings.Split(path, "/")
+
+	encPath := ""
+	for i := range parts {
+		if parts[i][:1] == "{" {
+			parts[i] = strings.TrimRight(parts[i][strings.Index(parts[i], ":") + 1:], "}")
+		}
+
+		token := 0
+		found := false
+		if token, found = restManager.pathDict[parts[i]]; !found {
+			if add {
+				token = restManager.pathDictIndex
+				restManager.pathDict[parts[i]] = restManager.pathDictIndex
+				restManager.pathDictIndex++
+			} else {
+				// any unrecognized part is a path variable
+				if parmAsString {
+					token = restManager.pathDict["string"]
+				} else if _, err := strconv.Atoi(parts[i]); err == nil {
+					token = restManager.pathDict["int"]
+				} else if _, err := strconv.ParseBool(parts[i]); err == nil {
+					token = restManager.pathDict["bool"]
+				} else {
+					token = restManager.pathDict["string"]
+				}
+			}
+		}
+
+		encPath = encPath + strconv.Itoa(token) + " "
+	} 
+
+	return encPath
+}
+
 func prepSecurityMetaData(tags reflect.StructTag) SecurityStruct {
 	secDef := new(SecurityStruct)	
 	secDef.Scope = make([]string, 0)
@@ -319,7 +360,6 @@ func prepSecurityMetaData(tags reflect.StructTag) SecurityStruct {
 		secDef.Scope = append(secDef.Scope, scope...)
 	}
 
-	logger.Info.Println(secDef)
 	return *secDef
 }
 
@@ -413,13 +453,13 @@ func parseParams(e *EndPointStruct) {
 		logger.Error.Fatalln("Variable length endpoints can only have one parameter declaration: " + pathPart)
 	}
 
-	for key, ep := range _manager().endpoints {
+	for _, ep := range _manager().endpoints {
 		if ep.root == e.root && ep.signitureLen == e.signitureLen && reflect.DeepEqual(ep.nonParamPathPart, e.nonParamPathPart) && ep.RequestMethod == e.RequestMethod {
 			logger.Error.Fatalln("Can not register two endpoints with same request-method(" + ep.RequestMethod + ") and same signature: " + e.Signiture + " VS " + ep.Signiture)
 		}
-		if ep.RequestMethod == e.RequestMethod && pathPart == key {
-			logger.Error.Fatalln("Endpoint already registered: " + pathPart)
-		}
+//		if encodeSigniture(ep.RequestMethod + "/" + pathPart, false, false) == key {
+//			logger.Error.Fatalln("Endpoint already registered: " + ep.RequestMethod + "/" + pathPart)
+//		}
 		if e.isVariableLength && (strings.Index(ep.root+"/", e.root+"/") == 0 || strings.Index(e.root+"/", ep.root+"/") == 0) && ep.RequestMethod == e.RequestMethod {
 			logger.Error.Fatalln("Variable length endpoints can only be mounted on a unique root. Root already used: " + ep.root + " <> " + e.root)
 		}
@@ -487,48 +527,57 @@ func getEndPointByUrl(method string, url string) (EndPointStruct, map[string]str
 
 func matchEndPoint(method string, pathPart string) (ep *EndPointStruct, found bool) {
 	// try exact match first
-	pathMatch := method + ":" + pathPart
-	if mEp, match := _manager().endpoints[pathMatch]; match {
+	encPath := encodeSigniture(method + "/" + pathPart, false, false)
+	if mEp, match := _manager().endpoints[encPath]; match {
 		ep = &mEp
 		return ep, true
 	}
 
-	totalParts := strings.Count(pathPart, "/") + 1
-	for _, loopEp := range _manager().endpoints {
+	// try path params as strings
+	encPath = encodeSigniture(method + "/" + pathPart, false, true)
+	if mEp, match := _manager().endpoints[encPath]; match {
+		ep = &mEp
+		return ep, true
+	}
 
-		if (strings.Index(pathPart+"/", loopEp.root+"/") == 0) && loopEp.RequestMethod == method {
-			if loopEp.isVariableLength {
-				ep = &loopEp
-				return ep, true
-			}
+	return nil, false
 
-			if loopEp.signitureLen == totalParts {
-				ep = &loopEp
+//	totalParts := strings.Count(pathPart, "/") + 1
+//	for _, loopEp := range _manager().endpoints {
+
+//		if (strings.Index(pathPart+"/", loopEp.root+"/") == 0) && loopEp.RequestMethod == method {
+//			if loopEp.isVariableLength {
+//				ep = &loopEp
+//				return ep, true
+//			}
+
+//			if loopEp.signitureLen == totalParts {
+//				ep = &loopEp
 				//We first make sure that the other parts of the path that are not parameters do actully match with the signature.
 				//If not we exit. We do not have to carry on looking since we only allow one registration per root and length.
-				for pos, name := range ep.nonParamPathPart {
-					for upos, str1 := range strings.Split(pathPart, "/") {
-						if upos == pos {
-							if name != str1 {
+//				for pos, name := range ep.nonParamPathPart {
+//					for upos, str1 := range strings.Split(pathPart, "/") {
+//						if upos == pos {
+//							if name != str1 {
 								//Even though the beginning of the path matched, some other part didn't, keep looking.
-								ep = nil
-							}
-							break
-						}
-					}
+//								ep = nil
+//							}
+//							break
+//						}
+//					}
 
-					if ep == nil {
-						break
-					}
-				}
+//					if ep == nil {
+//						break
+//					}
+//				}
 
-				if ep != nil {
-					return ep, true
-				}
-			}
-		}
-	}
-	return ep, false
+//				if ep != nil {
+//					return ep, true
+//				}
+//			}
+//		}
+//	}
+//	return ep, false
 }
 
 func parseVarPathArgs(ep *EndPointStruct, pathPart string) map[string]string {
