@@ -256,7 +256,7 @@ type SecurityRequirement 	map[string][]string
 type Tag struct {
 	Name		string			`json:"name"`
 	Description	string			`json:"description"`
-	ExternalDocs	ExtDocObject		`json:"externalDocs,omitempty"`
+	ExternalDocs	*ExtDocObject		`json:"externalDocs,omitempty"`
 }
 
 var spec20		*SwaggerAPI20
@@ -265,8 +265,8 @@ func newSpec20(basePath string, numSvcTypes int, numEndPoints int) *SwaggerAPI20
 	spec20 = new(SwaggerAPI20)
 
 	spec20.SwaggerVersion = "2.0"
-	spec20.Host = strings.TrimSuffix(strings.TrimPrefix(basePath, "http://"), "/")
-	spec20.BasePath = "/"
+	//spec20.Host = strings.TrimSuffix(strings.TrimPrefix(basePath, "http://"), "/")
+	spec20.BasePath = basePath
 	spec20.Schemes = make([]string, 0)
 	spec20.Consumes = make([]string, 0)
 	spec20.Produces = make([]string, 0)
@@ -302,6 +302,7 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 			temp := strings.Join(strings.Fields(string(field.Tag)), " ")
 			tags := reflect.StructTag(temp)
 			spec20.Info = populateInfoObject(tags)
+			spec20.Tags = populateTags(tags)
 		}
 	}
 
@@ -313,6 +314,7 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 		var existing	bool
 
 		path := "/" + cleanPath(ep.Signiture)
+		path = strings.TrimPrefix(path, basePath)
 
 		if _, existing = spec20.Paths[path]; existing {
 			api = spec20.Paths[path]
@@ -488,6 +490,24 @@ func populateInfoObject(tags reflect.StructTag) InfoObject {
 	}
 	
 	return info
+}
+
+func populateTags(tags reflect.StructTag) []Tag {
+	taglist := make([]Tag, 0)
+
+	if tag := tags.Get("sw.tags"); tag != "" {
+		reg := regexp.MustCompile("{[^}]+}")
+		parts := reg.FindAllString(tag, -1)
+		for i := 0; i < len(parts); i++ {
+			var tagItem	Tag
+
+			tag_nm_desc := strings.Split(parts[i], ":")
+			tagItem.Name = strings.TrimPrefix(tag_nm_desc[0], "{")
+			tagItem.Description = strings.TrimSuffix(tag_nm_desc[1], "}")
+			taglist = append(taglist, tagItem)
+		}
+	}
+	return taglist
 }
 
 func populateOperationObject(tags reflect.StructTag, ep gorest.EndPointStruct) OperationObject {

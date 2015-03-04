@@ -59,6 +59,7 @@ package gorest
 
 import (
 	"encoding/json"
+	"encoding/base64"
 	"github.com/rmullinnix/logger"
 	"net/http"
 	"net/url"
@@ -140,6 +141,8 @@ type manager struct {
 	securityDef     map[string]SecurityStruct
 	pathDict	map[string]int
 	pathDictIndex	int
+	allowOrigin	string
+	allowOriginSet	bool
 	swaggerEP	string
 }
 
@@ -159,6 +162,7 @@ func newManager() *manager {
 	man.serviceTypes = make(map[string]ServiceMetaData, 0)
 	man.endpoints = make(map[string]EndPointStruct, 0)
 	man.securityDef = make(map[string]SecurityStruct, 0)
+	man.allowOriginSet = false
 
 	man.pathDict = make(map[string]int, 0)
 	man.pathDict["bool"] = 1
@@ -169,6 +173,11 @@ func newManager() *manager {
 	man.pathDictIndex = 6
 
 	return man
+}
+
+func SetAllowOrigin(origin string) {
+	_manager().allowOrigin = origin
+	_manager().allowOriginSet = true
 }
 
 //Registers a service on the rootpath.
@@ -276,7 +285,7 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if url_ == _manager().swaggerEP {
-		basePath := "/"
+		basePath :=  _manager().root
 		doc := GetDocumentor("swagger")
 		swagDoc := doc.Document(basePath, this.serviceTypes, this.endpoints, this.securityDef)
 		data, _ := json.Marshal(swagDoc)
@@ -295,6 +304,9 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx.xsrftoken = getAuthKey(ep.SecurityScheme, queryArgs, r, w)
 		ctx.sessData.relSessionData = make(map[string]interface{})
 		ctx.sessData.relSessionData["Host"] = r.Host
+		if _manager().allowOriginSet {
+			ctx.sessData.relSessionData["Origin"] = _manager().allowOrigin
+		}
 
 		rb := prepareServe(ctx, ep, args, queryArgs)
 
@@ -310,16 +322,23 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func getAuthKey(scheme string, queryArgs map[string]string, r *http.Request, w http.ResponseWriter) string {
 	authKey := ""
 	if len(scheme) > 0 {
+		// three modes - basic, api_key, oauth2
 		if def, found := _manager().securityDef[scheme]; found {
-			if def.Location == "header" {
+			if scheme == "basic" {
 				authKey = r.Header.Get("Authorization")
 				if len(authKey) > 0 {
-					logger.Info.Println(authKey, def.Prefix)
-					w.Header().Set("Authorization", authKey)
+					authKey = strings.TrimPrefix(authKey, "Basic ")
+					payload, _ := base64.StdEncoding.DecodeString(authKey)
+					authKey = string(payload)
+				}
+			} else if def.Location == "header" {
+				authKey = r.Header.Get(def.Name)
+				if len(authKey) > 0 {
+					w.Header().Set(def.Name, authKey)
 					if strings.Contains(authKey, def.Prefix) {
 						authKey = strings.TrimPrefix(authKey, def.Prefix)
 					}
-					logger.Info.Println(authKey)
+					logger.Info.Println("Authorization Key", authKey)
 				}
 			} else if def.Location == "query" {
 				if authKey, found = queryArgs[def.Name]; found {
@@ -394,7 +413,7 @@ func getDefaultResponseCode(method string) int {
 		}
 	case POST:
 		{
-			return 202
+			return 201
 		}
 	default:
 		{

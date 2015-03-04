@@ -50,8 +50,8 @@ const (
 //	}
 //
 type RestService struct {
-	Context *Context
-	rb	*ResponseBuilder
+	Context		*Context
+	rb		*ResponseBuilder
 }
 
 //Used to declare and EndPoint, wich represents a single point of entry to gorest applications, via a URL.
@@ -77,7 +77,6 @@ func (serv RestService) RB() *ResponseBuilder {
 func (serv RestService) ResponseBuilder() *ResponseBuilder {
 	if serv.rb == nil {
 		serv.rb = &ResponseBuilder{serv.Context}
-//		serv.rb.ctx = serv.Context
 	}
 	return serv.rb
 }
@@ -122,7 +121,6 @@ func (serv RestService) Request() *http.Request {
 //Facilitates the construction of the response to be sent to the client.
 type ResponseBuilder struct {
 	ctx *Context
-
 }
 
 //Returns the Authorization token associated with the current request and hence session.
@@ -220,6 +218,10 @@ func (this *ResponseBuilder) WritePacket() *ResponseBuilder {
 
 		if this.ctx.responseMimeSet {
 			this.writer().Header().Set("Content-Type", this.ctx.responseMimeType)
+		}
+
+		if value, found := this.Session().Get("Origin"); found {
+			this.writer().Header().Set("Access-Control-Allow-Origin", value.(string))
 		}
 
 		if this.ctx.respPacket == nil {
