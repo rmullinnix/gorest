@@ -166,7 +166,7 @@ func (this *ResponseBuilder) SetResponseMsg(message string) *ResponseBuilder {
 //Set the content type of the http entity that is to be sent to the client.
 func (this *ResponseBuilder) SetContentType(mime string) *ResponseBuilder {
 	this.ctx.responseMimeSet = true
-	this.writer().Header().Set("Content-Type", mime)
+	this.ctx.responseMimeType = mime
 	return this
 }
 
@@ -218,7 +218,7 @@ func (this *ResponseBuilder) WritePacket() *ResponseBuilder {
 			this.SetResponseCode(getDefaultResponseCode(this.ctx.request.Method))
 		}
 
-		if !this.ctx.responseMimeSet {
+		if this.ctx.responseMimeSet {
 			this.writer().Header().Set("Content-Type", this.ctx.responseMimeType)
 		}
 

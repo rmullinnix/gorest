@@ -489,6 +489,8 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 				}
 			}
 
+			rb.SetContentType(mimeType)
+
 			// check for hypermedia decorator
 			dec := GetHypermedia()
 			hidec := ret[0].Interface()
@@ -505,6 +507,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 			//At this stage we should be ready to write the response to client
 			if bytarr, err := interfaceToBytes(hidec, mimeType); err == nil {
 				rb.ctx.respPacket = bytarr
+				rb.AddHeader("Content-Type", mimeType)
 				rb.SetResponseCode(http.StatusOK)
 				return rb
 			} else {

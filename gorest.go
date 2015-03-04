@@ -267,7 +267,8 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if r.Method == OPTIONS {
 			logger.Error.Println("CORS pre-flight OPTONS")
 			w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
+			w.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Location")
+			w.Header().Add("Access-Control-Allow-Origin", "*")
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(""))
 			return
@@ -276,11 +277,12 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if url_ == _manager().swaggerEP {
 		basePath := "/"
-//		basePath = strings.Replace(basePath, "7676", "8080", -1)
 		doc := GetDocumentor("swagger")
 		swagDoc := doc.Document(basePath, this.serviceTypes, this.endpoints, this.securityDef)
 		data, _ := json.Marshal(swagDoc)
 		logger.SetResponseCode(http.StatusOK)
+		w.Header().Add("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusOK)
 		w.Write(data)
 		return
