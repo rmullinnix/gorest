@@ -265,7 +265,7 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool)
 					return
 				}
 			}
-			if ep.outputTypeIsMap {
+			if ep.OutputTypeIsMap {
 				if methVal.Kind() == reflect.Map {
 					methVal = methVal.Elem()
 				} else {
@@ -303,7 +303,7 @@ func panicMethNotFound(methFound bool, ep EndPointStruct, t reflect.Type, f refl
 	if ep.OutputTypeIsArray {
 		isArr = "[]"
 	}
-	if ep.outputTypeIsMap {
+	if ep.OutputTypeIsMap {
 		isArr = "map[string]"
 	}
 	if ep.postdataTypeIsArray {
@@ -354,8 +354,15 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 
 	//Check Authorization
 
-	if servMeta.realm != "" {
-		if !GetAuthorizer(servMeta.realm)(context.xsrftoken, servMeta.realm, context.request.Method, rb) {
+	if ep.SecurityScheme != nil {
+		authorized := false
+		for key, scopes := range ep.SecurityScheme {
+			authorized = GetAuthorizer(key)(context.xsrftoken, key, scopes, context.request.Method, rb)
+			if authorized {
+				break
+			}
+		}
+		if !authorized {
 			return rb
 		}
 	}

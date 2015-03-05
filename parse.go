@@ -78,7 +78,7 @@ var aLLOWED_PAR_TYPES = []string{"string", "int", "int32", "int64", "bool", "flo
 
 const (
 	errorString_MarshalMimeType = "The Marshaller for mime-type:[%s], is not registered. Please register this type before registering your service."
-	errorString_Realm = "The realm:[%s], is not registered. Please register this realm before registering your service."
+	errorString_Scheme = "The security scheme:[%s], is not registered. Please register this scheme before registering your service."
 	errorString_UnknownMethod = "Unknown method type:[%s] in endpoint declaration. Allowed types {GET,POST,PUT,DELETE,HEAD,OPTIONS}"
 	errorString_EndpointDecl = "Endpoint declaration must have the tags 'method' and 'path' "
 	errorString_StringMap = "Only string keyed maps e.g( map[string]... ) are allowed on the [%s] tag. Endpoint: %s"
@@ -135,13 +135,6 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 		}
 	}
 
-	if tag = tags.Get("realm"); tag != "" {
-		md.realm = tag
-		if GetAuthorizer(tag) == nil {
-			logger.Error.Fatalf(errorString_Realm, tag)
-		}
-	}
-
 	if tag := tags.Get("gzip"); tag != "" {
 		b, err := strconv.ParseBool(tag)
 		if err != nil {
@@ -195,7 +188,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 			if strings.HasPrefix(tag, "map[") { //Check for map[string]. We only handle string keyed maps!!!
 
 				if ms.OutputType[4:10] == "string" {
-					ms.outputTypeIsMap = true
+					ms.OutputTypeIsMap = true
 					ms.OutputType = ms.OutputType[11:]
 				} else {
 					logger.Error.Fatalf(errorString_StringMap, "output", ms.Signiture)
@@ -273,7 +266,26 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 		}
 
 		if tag := tags.Get("security"); tag != "" {
-			ms.SecurityScheme = tag
+			scopes := make([]string, 0)
+
+			if ms.SecurityScheme == nil {
+				ms.SecurityScheme = make(map[string][]string)
+			}
+			name := tag
+			if cindex := strings.Index(tag, ":"); cindex > -1 {
+				name = tag[:strings.Index(tag, ":")]
+			}
+
+			if GetAuthorizer(name) == nil {
+				logger.Error.Fatalf(errorString_Scheme, name)
+			}
+
+			if strings.Index(tag, "[") > -1 {
+				scp := tag[strings.Index(tag, "["):strings.Index(tag, "]")]
+				items := strings.Split(scp, ",")
+				scopes = append(scopes, items...)
+			}
+			ms.SecurityScheme[name] = scopes 
 		}
 
 		parseParams(ms)

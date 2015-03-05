@@ -26,20 +26,22 @@
 
 package gorest
 
+import "github.com/rmullinnix/logger"
 
 var authorizers map[string]Authorizer
 
 //Signiture of functions to be used as Authorizers
-type Authorizer func(string, string, string, *ResponseBuilder)(bool)
+//  token, scheme, scopes, method, ResponseBuilder
+type Authorizer func(string, string, []string, string, *ResponseBuilder)(bool)
 
 //Registers an Authorizer for the specified realm.
-func RegisterRealmAuthorizer(realm string, auth Authorizer){
+func RegisterAuthorizer(scheme string, auth Authorizer){
 	if authorizers == nil{
 		authorizers = make(map[string]Authorizer,0)
 	}
 	
-	if _,found := authorizers[realm]; !found{
-		authorizers[realm] = auth
+	if _,found := authorizers[scheme]; !found{
+		authorizers[scheme] = auth
 	}
 }
 
@@ -54,7 +56,8 @@ func GetAuthorizer(realm string)(a Authorizer){
 
 //This is the default and exmaple authorizer that is used to authorize requests to endpints with no security realms.
 //It always allows access and returns nil for SessionData.
-func DefaultAuthorizer(token string, resource string, method string, rb *ResponseBuilder)(bool) {
+func DefaultAuthorizer(token string, scheme string, scopes []string, method string, rb *ResponseBuilder)(bool) {
+	logger.Info.Println(token, scheme, method)
 	return true
 }
 
