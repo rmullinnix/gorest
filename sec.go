@@ -34,7 +34,7 @@ var authorizers map[string]Authorizer
 //  token, scheme, scopes, method, ResponseBuilder
 type Authorizer func(string, string, []string, string, *ResponseBuilder)(bool)
 
-//Registers an Authorizer for the specified realm.
+//Registers an Authorizer for the specified security scheme
 func RegisterAuthorizer(scheme string, auth Authorizer){
 	if authorizers == nil{
 		authorizers = make(map[string]Authorizer,0)
@@ -45,19 +45,19 @@ func RegisterAuthorizer(scheme string, auth Authorizer){
 	}
 }
 
-//Returns the registred Authorizer for the specified realm.
-func GetAuthorizer(realm string)(a Authorizer){
+//Returns the registred Authorizer for the specified scheme 
+func GetAuthorizer(scheme string)(a Authorizer){
 	if authorizers ==nil{
 		authorizers = make(map[string]Authorizer,0)
 	}
-	a,_ = authorizers[realm]
+	a,_ = authorizers[scheme]
 	return 
 }
 
-//This is the default and exmaple authorizer that is used to authorize requests to endpints with no security realms.
-//It always allows access and returns nil for SessionData.
+//This is the default and exmaple authorizer that is used to authorize requests to endpints with a security scheme
+//It always allows access and returns nil for SessionData.  
 func DefaultAuthorizer(token string, scheme string, scopes []string, method string, rb *ResponseBuilder)(bool) {
-	logger.Info.Println(token, scheme, method)
+	logger.Warning.Println("Use of DefaultAuthorizer for scheme " + scheme)
 	return true
 }
 
