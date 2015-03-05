@@ -134,8 +134,8 @@ func (this *ResponseBuilder) SessionToken() string {
 //This creates a cookie and sets an http header with the name "X-Xsrf-Cookie"
 func (this *ResponseBuilder) SetSessionToken(token string, path string, expires time.Time) {
 	this.ctx.xsrftoken = token
-	this.SetHeader(XSXRF_COOKIE_NAME, token)
-	http.SetCookie(this.ctx.writer, &http.Cookie{Name: XSXRF_COOKIE_NAME, Value: token, Path: path, Expires: expires})
+//	this.SetHeader(XSXRF_COOKIE_NAME, token)
+//	http.SetCookie(this.ctx.writer, &http.Cookie{Name: XSXRF_COOKIE_NAME, Value: token, Path: path, Expires: expires})
 }
 
 //This cleares the "xsrftoken" token associated with the current request and hence session. 

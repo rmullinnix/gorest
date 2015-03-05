@@ -204,6 +204,7 @@ type SchemaObject struct {
 	MaxItems	int32			`json:"maxItems,omitempty"`
 	MinItems	int32			`json:"minItems,omitempty"`
 	Properties	map[string]SchemaObject	`json:"properties,omitempty"`
+	AdditionalProps	*SchemaObject		`json:"additionalProperties,omitempty"`
 	MaxProperties	int32			`json:"maxProperties,omitempty"`
 	MinProperties	int32			`json:"minProperties,omitempty"`
 	AllOf		*SchemaObject		`json:"allOf,omitempty"`
@@ -331,11 +332,8 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 		op.Consumes = append(op.Consumes, ep.ConsumesMime...)
 		op.Produces = append(op.Produces, ep.ProducesMime...)
 
-		if len(ep.SecurityScheme) > 0 {
-			
-			req := make(map[string][]string, 0)
-			req[ep.SecurityScheme] = make([]string, 0)
-			op.Security = append(op.Security, req)
+		if ep.SecurityScheme != nil {
+			op.Security = append(op.Security, ep.SecurityScheme)
 		}
 
 		switch (ep.RequestMethod) {
@@ -436,8 +434,8 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 				schema := populateDefinitions(outType)
 
 				spec20.Definitions[outType.Name()] = schema
-			}
-			// inType.Kind() == reflect.Slice (arrays)
+			} 
+			// non references are handled in the responses section
 		}
 	}	
 
@@ -577,6 +575,17 @@ func populateResponseObject(tags reflect.StructTag, ep gorest.EndPointStruct) ma
 						}
 
 						schema.Items = &items
+					} else if ep.OutputTypeIsMap {
+						// think only map[string] is supported
+						schema.Type = "object"
+						var valSchema		SchemaObject
+
+						if isPrimitive(ep.OutputType) {
+							valSchema.Type, valSchema.Format = primitiveFormat(ep.OutputType)
+						} else {
+							valSchema.Ref = "#/definitions/" + ep.OutputType
+						}
+						schema.AdditionalProps = &valSchema
 					} else {
 						if isPrimitive(ep.OutputType)  {
 							schema.Type, schema.Format = primitiveFormat(ep.OutputType)

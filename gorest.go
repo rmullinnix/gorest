@@ -98,7 +98,7 @@ type EndPointStruct struct {
 	paramLen             int
 	OutputType           string
 	OutputTypeIsArray    bool
-	outputTypeIsMap      bool
+	OutputTypeIsMap      bool
 	PostdataType         string
 	postdataTypeIsArray  bool
 	postdataTypeIsMap    bool
@@ -109,7 +109,7 @@ type EndPointStruct struct {
 	ProducesMime 	     []string // overrides the produces mime type
 	ConsumesMime 	     []string // overrides the consumes mime type
 	allowGzip 	     int // 0 false, 1 true, 2 unitialized
-	SecurityScheme	     string // must match one of securityDef
+	SecurityScheme	     map[string][]string // must match one of securityDef
 }
 
 type restStatus struct {
@@ -319,34 +319,55 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getAuthKey(scheme string, queryArgs map[string]string, r *http.Request, w http.ResponseWriter) string {
+func getAuthKey(schemes map[string][]string, queryArgs map[string]string, r *http.Request, w http.ResponseWriter) string {
 	authKey := ""
-	if len(scheme) > 0 {
+
+	// why we would have multiple schemes against an endpoint - don't know
+	for scheme, _ := range schemes {
 		// three modes - basic, api_key, oauth2
+		logger.Info.Println("Scheme", scheme)
 		if def, found := _manager().securityDef[scheme]; found {
-			if scheme == "basic" {
+			logger.Info.Println("found")
+			if def.Mode == "basic" {
 				authKey = r.Header.Get("Authorization")
+				logger.Info.Println("Basic", authKey)
 				if len(authKey) > 0 {
 					authKey = strings.TrimPrefix(authKey, "Basic ")
 					payload, _ := base64.StdEncoding.DecodeString(authKey)
 					authKey = string(payload)
 				}
-			} else if def.Location == "header" {
-				authKey = r.Header.Get(def.Name)
-				if len(authKey) > 0 {
-					w.Header().Set(def.Name, authKey)
-					if strings.Contains(authKey, def.Prefix) {
-						authKey = strings.TrimPrefix(authKey, def.Prefix)
-					}
-					logger.Info.Println("Authorization Key", authKey)
+			} else {
+				location := def.Location
+				name := def.Name
+				prefix := def.Prefix
+				if scheme == "oauth2"  {
+					location = "header"
+					name = "Authorization"
+					prefix = "Bearer "
 				}
-			} else if def.Location == "query" {
-				if authKey, found = queryArgs[def.Name]; found {
-					if strings.Contains(authKey, def.Prefix) {
-						authKey = strings.TrimPrefix(authKey, def.Prefix)
+
+				if location == "header" {
+					authKey = r.Header.Get(name)
+					if len(authKey) > 0 {
+						w.Header().Set(name, authKey)
+					if strings.Contains(authKey, prefix) {
+							authKey = strings.TrimPrefix(authKey, prefix)
+						}
+						logger.Info.Println("Authorization Key", authKey)
+					}
+				} else if location == "query" {
+					if authKey, found = queryArgs[name]; found {
+						if strings.Contains(authKey, prefix) {
+							authKey = strings.TrimPrefix(authKey, prefix)
+						}
 					}
 				}
 			}
+			if len(authKey) > 0 {
+				break
+			}
+		} else {
+			logger.Info.Println("scheme not found")
 		}
 	}
 
