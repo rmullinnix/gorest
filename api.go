@@ -221,6 +221,7 @@ func (this *ResponseBuilder) WritePacket() *ResponseBuilder {
 		}
 
 		if value, found := this.Session().Get("Origin"); found {
+			this.writer().Header().Set("Access-Control-Allow-Headers", "Origin")
 			this.writer().Header().Set("Access-Control-Allow-Origin", value.(string))
 		}
 
@@ -249,6 +250,11 @@ func (this *ResponseBuilder) Write(data []byte) *ResponseBuilder {
 		this.SetResponseCode(getDefaultResponseCode(this.ctx.request.Method))
 	}
 	if !this.ctx.dataHasBeenWritten {
+		if value, found := this.Session().Get("Origin"); found {
+			this.writer().Header().Set("Access-Control-Allow-Headers", "Origin")
+			this.writer().Header().Set("Access-Control-Allow-Origin", value.(string))
+		}
+
 		//TODO: Check for content type set.......
 		this.writer().WriteHeader(this.ctx.responseCode)
 	}
