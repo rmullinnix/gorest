@@ -281,7 +281,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 			}
 
 			if strings.Index(tag, "[") > -1 {
-				scp := tag[strings.Index(tag, "["):strings.Index(tag, "]")]
+				scp := tag[strings.Index(tag, "[")+1:strings.Index(tag, "]")]
 				items := strings.Split(scp, ",")
 				scopes = append(scopes, items...)
 			}
@@ -342,6 +342,10 @@ func prepSecurityMetaData(tags reflect.StructTag) SecurityStruct {
 
 	if tag := tags.Get("mode"); tag != "" {
 		secDef.Mode = tag
+	}
+
+	if tag := tags.Get("description"); tag != "" {
+		secDef.Description = tag
 	}
 
 	if tag := tags.Get("location"); tag != "" {

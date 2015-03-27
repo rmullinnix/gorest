@@ -246,6 +246,7 @@ func (this *ResponseBuilder) WritePacket() *ResponseBuilder {
 
 //This will just write to the response without affecting the change done by a call to Overide().
 func (this *ResponseBuilder) Write(data []byte) *ResponseBuilder {
+	logger.Error.Println("rc", this.ctx.responseCode)
 	if this.ctx.responseCode == 0 {
 		this.SetResponseCode(getDefaultResponseCode(this.ctx.request.Method))
 	}

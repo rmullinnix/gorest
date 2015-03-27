@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/rmullinnix/gorest"
+	"github.com/rmullinnix/logger"
 	"time"
 )
 
@@ -12,6 +13,7 @@ var curScheme		string
 
 func Oauth2Jwt(token string, scheme string, scopes []string, method string, rb *gorest.ResponseBuilder) bool {
 
+	logger.Info.Println("oauth2jwt", token, scheme, scopes)
 	curScheme = scheme
 
 	jwtToken, err := jwt.Parse(token, jwtKey)
@@ -19,21 +21,24 @@ func Oauth2Jwt(token string, scheme string, scopes []string, method string, rb *
 	curScheme = ""
 
 	if err != nil {
+		logger.Error.Println("jwt error", err)
 		return false
 	}
 
 
 	claim, found := jwtToken.Claims["scope"]
-	if ! found {
+	if !found {
+		logger.Error.Println("No scope claims in the token" )
 		return false
 	}
 	
-	arrClaim := claim.([]string)
+	logger.Error.Println("claim", claim)
+	arrClaim := claim.([]interface{})
 
 	authorized := false
 	for i := range scopes {
 		for j := range arrClaim {
-			if scopes[i] == arrClaim[j] {
+			if scopes[i] == arrClaim[j].(string) {
 				authorized = true
 				break
 			}
@@ -57,6 +62,7 @@ func GetKey(scheme string, keyid string) interface{} {
 	if found {
 		return key
 	} else {
+		logger.Error.Println("Key not found")
 		return nil
 	}
 }
@@ -78,7 +84,13 @@ func NewToken(method jwt.SigningMethod, userId string, scopes []string, expireMi
 }
 
 func jwtKey(token *jwt.Token) (interface{}, error) {
-	if key := GetKey(curScheme, token.Header["kid"].(string)); key == nil {
+	keyIndex := "default"
+
+	if item, found := token.Header["kid"]; found {
+		keyIndex = item.(string)
+	}
+
+	if key := GetKey(curScheme, keyIndex); key == nil {
 		return nil, errors.New("key for " + token.Header["kid"].(string) + " does not exist")
 	} else {
 		return key, nil

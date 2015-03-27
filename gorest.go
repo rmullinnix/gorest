@@ -148,6 +148,7 @@ type manager struct {
 
 type SecurityStruct struct {
 	Mode		string // basic, api_key or oauth2
+	Description	string
 	Location	string // header or query
 	Name		string // name of query param or header element
 	Prefix		string // if auth header has a prefix (e.g., "Bearer ")
@@ -325,12 +326,9 @@ func getAuthKey(schemes map[string][]string, queryArgs map[string]string, r *htt
 	// why we would have multiple schemes against an endpoint - don't know
 	for scheme, _ := range schemes {
 		// three modes - basic, api_key, oauth2
-		logger.Info.Println("Scheme", scheme)
 		if def, found := _manager().securityDef[scheme]; found {
-			logger.Info.Println("found")
 			if def.Mode == "basic" {
 				authKey = r.Header.Get("Authorization")
-				logger.Info.Println("Basic", authKey)
 				if len(authKey) > 0 {
 					authKey = strings.TrimPrefix(authKey, "Basic ")
 					payload, _ := base64.StdEncoding.DecodeString(authKey)
@@ -340,7 +338,7 @@ func getAuthKey(schemes map[string][]string, queryArgs map[string]string, r *htt
 				location := def.Location
 				name := def.Name
 				prefix := def.Prefix
-				if scheme == "oauth2"  {
+				if def.Mode == "oauth2"  {
 					location = "header"
 					name = "Authorization"
 					prefix = "Bearer "
@@ -350,10 +348,9 @@ func getAuthKey(schemes map[string][]string, queryArgs map[string]string, r *htt
 					authKey = r.Header.Get(name)
 					if len(authKey) > 0 {
 						w.Header().Set(name, authKey)
-					if strings.Contains(authKey, prefix) {
+						if strings.Contains(authKey, prefix) {
 							authKey = strings.TrimPrefix(authKey, prefix)
 						}
-						logger.Info.Println("Authorization Key", authKey)
 					}
 				} else if location == "query" {
 					if authKey, found = queryArgs[name]; found {

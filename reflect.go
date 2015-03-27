@@ -164,125 +164,117 @@ func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName stri
 	logger.Info.Println("Registerd service:", t.Name(), " endpoint:", ep.RequestMethod, ep.Signiture)
 }
 
-func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) (cool bool) {
-	cool = true
+func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
+	startParam := 1
 
-	numInputIgnore := 0
-
-	switch ep.RequestMethod {
-	case POST, PUT:
-		{
-			numInputIgnore = 2 //The first param is the struct, the second the posted object
-		}
-	case GET, DELETE, HEAD, OPTIONS:
-		{
-			numInputIgnore = 1 //The first param is the default service struct
-		}
-
+//	switch ep.RequestMethod {
+//	case POST, PUT:
+//		{
+//			numInputIgnore = 2 //The first param is the struct, the second the posted object
+//		}
+//	case GET, DELETE, HEAD, OPTIONS:
+//		{
+//			numInputIgnore = 1 //The first param is the default service struct
+//		}
+//	}
+	if len(ep.PostdataType) > 0 {
+		startParam = 2
 	}
 
-	if (methType.NumIn() - numInputIgnore) != (ep.paramLen + len(ep.QueryParams)) {
+	if (methType.NumIn() - startParam) != (ep.paramLen + len(ep.QueryParams)) {
 		logger.Error.Println("not cool 1")
-		cool = false
+		return false
+	}
+
+	//Check the first parameter type for POST and PUT
+	if len(ep.PostdataType) > 0 {
+		startParam++
+		methVal := methType.In(1)
+		if ep.postdataTypeIsArray {
+			if methVal.Kind() == reflect.Slice {
+				methVal = methVal.Elem()
+			} else {
+				logger.Error.Println("not cool 2")
+				return false
+			}
+		}
+		if ep.postdataTypeIsMap {
+			if methVal.Kind() == reflect.Map {
+				methVal = methVal.Elem()
+			} else {
+				logger.Error.Println("not cool 3")
+				return false
+			}
+		}
+
+		if !typeNamesEqual(methVal, ep.PostdataType) {
+			logger.Error.Println("not cool 4")
+			return false
+		}
+	}
+	//Check the rest of input path param types
+	i := startParam
+	if ep.isVariableLength {
+		if methType.NumIn() != startParam+1+len(ep.QueryParams) {
+			logger.Error.Println("not cool 5")
+			return false
+		}
+
+		if methType.In(i).Kind() == reflect.Slice { //Variable args Slice
+			if !typeNamesEqual(methType.In(i).Elem(), ep.Params[0].TypeName) { //Check the correct type for the Slice
+				return false
+			}
+		}
 	} else {
-		//Check the first parameter type for POST and PUT
-		if numInputIgnore == 2 {
-			methVal := methType.In(1)
-			if ep.postdataTypeIsArray {
-				if methVal.Kind() == reflect.Slice {
-					methVal = methVal.Elem()
-				} else {
-					logger.Error.Println("not cool 2")
-					cool = false
-					return
-				}
-			}
-			if ep.postdataTypeIsMap {
-				if methVal.Kind() == reflect.Map {
-					methVal = methVal.Elem()
-				} else {
-					logger.Error.Println("not cool 3")
-					cool = false
-					return
-				}
-			}
-
-			if !typeNamesEqual(methVal, ep.PostdataType) {
-				logger.Error.Println("not cool 4")
-				cool = false
-				return
-			}
-		}
-		//Check the rest of input path param types
-		i := numInputIgnore
-		if ep.isVariableLength {
-			if methType.NumIn() != numInputIgnore+1+len(ep.QueryParams) {
-				logger.Error.Println("not cool 5")
-				cool = false
-			}
-			cool = false
-			if methType.In(i).Kind() == reflect.Slice { //Variable args Slice
-				if typeNamesEqual(methType.In(i).Elem(), ep.Params[0].TypeName) { //Check the correct type for the Slice
-					cool = true
-				}
-			}
-
-		} else {
-			for ; i < methType.NumIn() && (i-numInputIgnore < ep.paramLen); i++ {
-				if !typeNamesEqual(methType.In(i), ep.Params[i-numInputIgnore].TypeName) {
-					logger.Error.Println("not cool 6.5")
-					cool = false
-					break
-				}
-			}
-		}
-
-		//Check the input Query param types
-		for j := 0; i < methType.NumIn() && (j < len(ep.QueryParams)); i++ {
-			if ep.QueryParams[j].TypeName[:2] == "[]" {
-				if methType.In(i).Elem().String() != ep.QueryParams[j].TypeName[2:] {
-					logger.Error.Println("not cool 6.7", methType.In(i).Elem(), ep.QueryParams[j].TypeName)
-					cool = false
-					break
-				}
-			} else if !typeNamesEqual(methType.In(i), ep.QueryParams[j].TypeName) {
-				logger.Error.Println("not cool 7", methType.In(i), ep.QueryParams[j].TypeName)
-				cool = false
-				break
-			}
-			j++
-		}
-		//Check output param type.
-		if methType.NumOut() > 0 {
-			methVal := methType.Out(0)
-
-			if ep.OutputTypeIsArray {
-				if methVal.Kind() == reflect.Slice {
-					methVal = methVal.Elem() //Only convert if it is mentioned as a slice in the tags, otherwise allow for failure panic
-				} else {
-					logger.Error.Println("not cool 8")
-					cool = false
-					return
-				}
-			}
-			if ep.OutputTypeIsMap {
-				if methVal.Kind() == reflect.Map {
-					methVal = methVal.Elem()
-				} else {
-					logger.Error.Println("not cool 9")
-					cool = false
-					return
-				}
-			}
-
-			if !typeNamesEqual(methVal, ep.OutputType) {
-				logger.Error.Println("not cool 10")
-				cool = false
+		for ; i < methType.NumIn() && (i-startParam < ep.paramLen); i++ {
+			if !typeNamesEqual(methType.In(i), ep.Params[i-startParam].TypeName) {
+				logger.Error.Println("not cool 6.5")
+				return false
 			}
 		}
 	}
 
-	return
+	//Check the input Query param types
+	for j := 0; i < methType.NumIn() && (j < len(ep.QueryParams)); i++ {
+		if ep.QueryParams[j].TypeName[:2] == "[]" {
+			if methType.In(i).Elem().String() != ep.QueryParams[j].TypeName[2:] {
+				logger.Error.Println("not cool 6.7", methType.In(i).Elem(), ep.QueryParams[j].TypeName)
+				return false
+			}
+		} else if !typeNamesEqual(methType.In(i), ep.QueryParams[j].TypeName) {
+			logger.Error.Println("not cool 7", methType.In(i), ep.QueryParams[j].TypeName)
+			return false
+		}
+		j++
+	}
+	//Check output param type.
+	if methType.NumOut() > 0 {
+		methVal := methType.Out(0)
+
+		if ep.OutputTypeIsArray {
+			if methVal.Kind() == reflect.Slice {
+				methVal = methVal.Elem() //Only convert if it is mentioned as a slice in the tags, otherwise allow for failure panic
+			} else {
+				logger.Error.Println("not cool 8")
+				return false
+			}
+		}
+		if ep.OutputTypeIsMap {
+			if methVal.Kind() == reflect.Map {
+				methVal = methVal.Elem()
+			} else {
+				logger.Error.Println("not cool 9")
+				return false
+			}
+		}
+
+		if !typeNamesEqual(methVal, ep.OutputType) {
+			logger.Error.Println("not cool 10")
+			return false
+		}
+	}
+
+	return true
 }
 
 func typeNamesEqual(methVal reflect.Type, name2 string) bool {
@@ -357,12 +349,15 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 	if ep.SecurityScheme != nil {
 		authorized := false
 		for key, scopes := range ep.SecurityScheme {
+			logger.Info.Println("Security scope: ", scopes)
 			authorized = GetAuthorizer(key)(context.xsrftoken, key, scopes, context.request.Method, rb)
 			if authorized {
 				break
 			}
 		}
 		if !authorized {
+			logger.Error.Println("Not authorized")
+			rb.SetResponseCode(404)
 			return rb
 		}
 	}
@@ -515,7 +510,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 			if bytarr, err := interfaceToBytes(hidec, mimeType); err == nil {
 				rb.ctx.respPacket = bytarr
 				rb.AddHeader("Content-Type", mimeType)
-				rb.SetResponseCode(http.StatusOK)
+				//rb.SetResponseCode(http.StatusOK)
 				return rb
 			} else {
 				//This is an internal error with the registered marshaller not being able to marshal internal structs

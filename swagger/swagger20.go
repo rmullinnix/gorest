@@ -443,12 +443,16 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 		scheme := new(SecurityScheme)
 
 		scheme.Type = item.Mode
-		scheme.Description = ""
+		scheme.Description = item.Description
 		scheme.Name = item.Name
 		scheme.In = item.Location
 		scheme.Flow = item.Flow
 		scheme.AuthorizationUrl = item.AuthURL
 		scheme.TokenUrl = item.TokenURL
+		scheme.Scopes = make(map[string]string)
+		for j := range item.Scope {
+			scheme.Scopes[item.Scope[j]] = ""
+		}
 
 		spec20.SecurityDefs[key] = *scheme
 	}
@@ -536,7 +540,6 @@ func populateOperationObject(tags reflect.StructTag, ep gorest.EndPointStruct) O
 		op.Tags = append(op.Tags, parts...)
 	}
 
-	
 	op.Responses = populateResponseObject(tags, ep)
 
 	return op
