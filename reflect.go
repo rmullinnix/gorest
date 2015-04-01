@@ -349,15 +349,18 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 	if ep.SecurityScheme != nil {
 		authorized := false
 		for key, scopes := range ep.SecurityScheme {
-			logger.Info.Println("Security scope: ", scopes)
-			authorized = GetAuthorizer(key)(context.xsrftoken, key, scopes, context.request.Method, rb)
+			alteredScopes := make([]string, len(scopes))
+			for i := range scopes {
+				alteredScopes[i] = replaceScopeKey(scopes[i], args)
+			}
+			authorized = GetAuthorizer(key)(context.xsrftoken, key, alteredScopes, context.request.Method, rb)
 			if authorized {
 				break
 			}
 		}
 		if !authorized {
 			logger.Error.Println("Not authorized")
-			rb.SetResponseCode(404)
+			rb.SetResponseCode(401)
 			return rb
 		}
 	}
@@ -382,7 +385,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 	mime := contentType
 
 	//For POST and PUT, make and add the first "postdata" argument to the argument list
-	if ep.RequestMethod == POST || ep.RequestMethod == PUT {
+	if len(ep.PostdataType) > 0 {
 
 		//Get postdata here
 		//TODO: Also check if this is a multipart post and handle as required.
@@ -403,7 +406,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 
 	if len(args) == ep.paramLen || (ep.isVariableLength && ep.paramLen == 1) {
 		startIndex := 1
-		if ep.RequestMethod == POST || ep.RequestMethod == PUT {
+		if len(ep.PostdataType) > 0 {
 			startIndex = 2
 		}
 
@@ -581,4 +584,15 @@ func validMime(mimeType string, epMime []string, srvMime []string) bool {
 	}
 
 	return found
+}
+
+func replaceScopeKey(scope string, args map[string]string) string {
+        out := scope
+        if pos := strings.Index(scope, "{"); pos > -1 {
+                key := scope[pos + 1 : strings.Index(scope, "}")]
+                value := args[key]
+                out = scope[:pos] + "[" + value + "]"
+        }
+
+        return out
 }
