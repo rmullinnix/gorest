@@ -304,7 +304,12 @@ func encodeSigniture(path string, add bool, parmAsString bool) string {
 	parts := strings.Split(path, "/")
 
 	encPath := ""
+
 	for i := range parts {
+		if len(parts[i]) == 0 {
+			continue
+		}
+
 		if parts[i][:1] == "{" {
 			parts[i] = strings.TrimRight(parts[i][strings.Index(parts[i], ":") + 1:], "}")
 		}

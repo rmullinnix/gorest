@@ -317,6 +317,10 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 		path := "/" + cleanPath(ep.Signiture)
 		path = strings.TrimPrefix(path, basePath)
 
+		if len(path) == 0 {
+			path = "/"
+		}
+
 		if _, existing = spec20.Paths[path]; existing {
 			api = spec20.Paths[path]
 		}
@@ -434,8 +438,26 @@ func swaggerDocumentor20(basePath string, svcTypes map[string]gorest.ServiceMeta
 				schema := populateDefinitions(outType)
 
 				spec20.Definitions[outType.Name()] = schema
-			} 
-			// non references are handled in the responses section
+			}  else if outType.Kind() == reflect.Slice {
+				et := outType.Elem()
+				parts := strings.Split(et.String(), ".")
+				name := ""
+				if len(parts) > 1 {
+					name = parts[1]
+				} else {
+					name = parts[0]
+				}
+
+				if et.Kind() == reflect.Struct {
+					if _, ok := spec20.Definitions[name]; ok {
+						continue  // definition already exists
+					}
+
+					schema := populateDefinitions(et)
+	
+					spec20.Definitions[name] = schema
+				}
+			}
 		}
 	}	
 

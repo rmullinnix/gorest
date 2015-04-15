@@ -158,6 +158,12 @@ type SecurityStruct struct {
 	Scope		[]string
 }
 
+type PathSecurity struct {
+	Path		string
+	Method		string
+	Scope		[]string
+}
+
 func newManager() *manager {
 	man := new(manager)
 	man.serviceTypes = make(map[string]ServiceMetaData, 0)
@@ -278,7 +284,9 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			logger.Error.Println("CORS pre-flight OPTONS")
 			w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Location")
-			w.Header().Add("Access-Control-Allow-Origin", "*")
+			if _manager().allowOriginSet {
+				w.Header().Add("Access-Control-Allow-Origin", _manager().allowOrigin)
+			}
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(""))
 			return
@@ -441,3 +449,38 @@ func getDefaultResponseCode(method string) int {
 
 	return 200
 }
+
+func GetPathSecurity() []PathSecurity {
+	eps := _manager().endpoints
+	output := make([]PathSecurity, 0)
+
+	for key, _ := range eps {
+		var item	PathSecurity
+
+		item.Path = cleanPath(eps[key].Signiture)
+		item.Method = eps[key].RequestMethod
+		if len(eps[key].SecurityScheme) > 0 {
+			item.Scope = make([]string, 0)
+			for _, scope := range eps[key].SecurityScheme {
+				item.Scope = append(item.Scope, scope...)
+			}
+		}
+		output = append(output, item)
+	}
+	return output
+}
+
+func cleanPath(inPath string) string {
+        sig := strings.Split(inPath, "?")
+        parts := strings.Split(sig[0], "{")
+
+        path := parts[0]
+        for i := 1; i < len(parts); i++ {
+                pathVar := strings.Split(parts[i], ":")
+                remPath := strings.Split(pathVar[1], "}")
+                path = path + "{" + pathVar[0] + "}" + remPath[1]
+        }
+
+        return path
+}
+

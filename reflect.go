@@ -375,14 +375,15 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 		contentType = servMeta.ConsumesMime[0]
 	}
 
-	if valid := validMime(contentType, ep.ConsumesMime, servMeta.ConsumesMime); !valid {
-		// error - can not accept request
-		rb.SetResponseCode(http.StatusBadRequest)
-		rb.SetResponseMsg("Service is not configured to accept Content-Type " + contentType)
-		return rb
+	valid, mime := validMime(contentType, ep.ConsumesMime, servMeta.ConsumesMime)
+	if !valid {
+		if len(ep.PostdataType) > 0 {
+			// error - can not accept request
+			rb.SetResponseCode(http.StatusBadRequest)
+			rb.SetResponseMsg("Service is not configured to accept Content-Type " + contentType)
+			return rb
+		}
 	}
-
-	mime := contentType
 
 	//For POST and PUT, make and add the first "postdata" argument to the argument list
 	if len(ep.PostdataType) > 0 {
@@ -479,11 +480,10 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 			valid := false
 
 			if len(accept) > 0 {
-				if valid = validMime(accept, ep.ProducesMime, servMeta.ProducesMime); valid {
+				if valid, mimeType = validMime(accept, ep.ProducesMime, servMeta.ProducesMime); valid {
 			//		rb.SetResponseCode(http.StatusBadRequest)
 			//		rb.SetResponseMsg("Service does not support Accept mime type " + mime)
 			//		return rb
-					mimeType = accept
 				}
 			}
 			if !valid {
@@ -500,12 +500,17 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 			dec := GetHypermedia()
 			hidec := ret[0].Interface()
 			if dec != nil {
+				scope := make([]string, 0)
 				prefix := "http://" + context.request.Host
-				role, found := rb.Session().GetString("Role")
-				if !found {
-					role = "public"
+				item, found := rb.Session().Get("Scope")
+				if found {
+					iScope := item.([]interface{})
+					scope = make([]string, len(iScope))
+					for i := range iScope {
+						scope[i] = iScope[i].(string)
+					}
 				}
-				hidec = dec.Decorate(mimeType, prefix, hidec, role)
+				hidec = dec.Decorate(mimeType, prefix, hidec, scope)
 			}
 
 			rb.ctx.responseMimeType = mimeType
@@ -563,34 +568,47 @@ func makeArg(data string, template reflect.Type, mime string) (reflect.Value, bo
 	return reflect.ValueOf(i).Elem(), true
 }
 
-func validMime(mimeType string, epMime []string, srvMime []string) bool {
+func validMime(mimeType string, epMime []string, srvMime []string) (bool, string) {
 	found := false
-	// Endpoint mime type list overrides the one defined at the server
-	// It is not a union
-	if len(epMime) > 0 {
-		for i := range epMime {
-			if mimeType == epMime[i] {
-				found = true
-				break
+	ctype := ""
+
+	parts := strings.Split(mimeType, ";")
+	for j := range parts {
+		// Endpoint mime type list overrides the one defined at the server
+		// It is not a union
+		if len(epMime) > 0 {
+			for i := range epMime {
+				if parts[j] == epMime[i] {
+					found = true
+					ctype = parts[j]
+					break
+				}
+			}
+		} else {
+			for i := range srvMime {
+				if parts[j] == srvMime[i] {
+					found = true
+					ctype = parts[j]
+					break
+				}
 			}
 		}
-	} else {
-		for i := range srvMime {
-			if mimeType == srvMime[i] {
-				found = true
-				break
-			}
+		if found {
+			break
 		}
 	}
 
-	return found
+	return found, ctype
 }
 
 func replaceScopeKey(scope string, args map[string]string) string {
         out := scope
+	value := ""
         if pos := strings.Index(scope, "{"); pos > -1 {
                 key := scope[pos + 1 : strings.Index(scope, "}")]
-                value := args[key]
+		if key != ""  {
+	                value = args[key]
+		}
                 out = scope[:pos] + "[" + value + "]"
         }
 

@@ -26,19 +26,19 @@
 
 package gorest
 
-var decorator *Decorator
+var decorator Decorator
 
 //Signiture of functions to be used as Decorators
 type Decorator struct {
-	Decorate func(string, string, interface{}, string)(interface{})
+	Decorate func(string, string, interface{}, []string)(interface{})
 }
 
 //Registers an Hypermedia Decorator for the specified mime type
-func RegisterHypermedia(dec *Decorator) {
+func RegisterHypermedia(dec Decorator) {
 	decorator = dec
 }
 
 //Returns the registred decorator for the specified mime type
 func GetHypermedia() (*Decorator) {
-	return decorator
+	return &decorator
 }

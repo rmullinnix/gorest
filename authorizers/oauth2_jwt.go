@@ -46,6 +46,7 @@ func Oauth2Jwt(token string, scheme string, scopes []string, method string, rb *
 	}
 	
 	arrClaim := claim.([]interface{})
+	rb.Session().Set("Scope", arrClaim)
 
 	authorized := false
 	for i := range scopes {
@@ -57,16 +58,29 @@ func Oauth2Jwt(token string, scheme string, scopes []string, method string, rb *
 
 		contextAuth := -1
 		contextKey := ""
+		scopeName := scopes[i]
 		if contextAuth = strings.Index(scopes[i], "["); contextAuth > -1 {
 			contextKey = scopes[i][contextAuth + 1 : strings.Index(scopes[i], "]")]
+			scopeName = scopes[i][:contextAuth]
 		}
 
+		logger.Info.Println("context:", contextKey)
 		for j := range arrClaim {
-			if len(contextKey) > 0 {
-				arrStr := arrClaim[j].(string)
-				if strings.HasPrefix(arrStr, scopes[i][:contextAuth]) {
+			arrStr := arrClaim[j].(string)
+
+			if strings.HasPrefix(arrStr, scopeName) {
+				if contextAuth = strings.Index(arrStr, "["); contextAuth > -1 {
+					rb.Session().Set("ScopeContext", arrStr[contextAuth + 1 : len(arrStr) - 1])
 					keys := strings.Split(arrStr[contextAuth + 1 : len(arrStr) - 1], ",")
+
+					// restricted list, filtered in application code
+					if contextKey == "" {
+						authorized = true
+						break
+					}
+
 					for k := range keys {
+						logger.Info.Println("arrStr:", keys[k])
 						if keys[k] == contextKey {
 							authorized = true
 							break
@@ -75,8 +89,14 @@ func Oauth2Jwt(token string, scheme string, scopes []string, method string, rb *
 					if authorized {
 						break
 					}
+				} else {
+					authorized = true
+					break
 				}
-			} else {
+
+			}
+			
+			if len(contextKey) > 0 {
 				if scopes[i] == arrClaim[j].(string) {
 					authorized = true
 					break
@@ -125,7 +145,7 @@ func NewToken(method jwt.SigningMethod, userId string, userUUID string, scopes [
 
 	signingKey := getKey("", "sign")
 
-	return token.SignedString(signingKey)
+	return token.SignedString(signingKey.key)
 }
 
 func jwtKey(token *jwt.Token) (interface{}, error) {
