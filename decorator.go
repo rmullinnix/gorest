@@ -27,6 +27,7 @@
 package gorest
 
 var decorator Decorator
+var decRegistred bool
 
 //Signiture of functions to be used as Decorators
 type Decorator struct {
@@ -36,9 +37,18 @@ type Decorator struct {
 //Registers an Hypermedia Decorator for the specified mime type
 func RegisterHypermedia(dec Decorator) {
 	decorator = dec
+	decRegistred = true
 }
 
 //Returns the registred decorator for the specified mime type
 func GetHypermedia() (*Decorator) {
-	return &decorator
+	if decRegistred {
+		return &decorator
+	} else {
+		return nil
+	}
+}
+
+func Init() {
+	decRegistred = false
 }

@@ -63,7 +63,6 @@ import (
 	"github.com/rmullinnix/logger"
 	"net/http"
 	"net/url"
-	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -266,29 +265,37 @@ func RegisterServiceOnPath(root string, h interface{}) {
 
 //ServeHTTP dispatches the request to the handler whose pattern most closely matches the request URL.
 func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	rb := new(ResponseBuilder)
+	rb.ctx = new(Context)
+
+	rb.ctx.writer = w
+	rb.ctx.request = r
+	rb.ctx.sessData.relSessionData = make(map[string]interface{})
+	rb.ctx.sessData.relSessionData["Host"] = r.Host
+	rb.ctx.sessStart = time.Now().Local()
+	if _manager().allowOriginSet {
+		rb.ctx.sessData.relSessionData["Origin"] = _manager().allowOrigin
+	}
+	defer rb.PerfLog()
+
 	url_, err := url.QueryUnescape(r.URL.RequestURI())
 
-	message := "url: " + url_ + " method: " + r.Method + " "
-	defer logger.Elapsed(time.Now(), message)
-
 	if err != nil {
-		logger.Warning.Println("Could not serve page: ", r.Method, r.URL.RequestURI(), "Error:", err)
-		logger.SetResponseCode(400)
-		w.WriteHeader(400)
-		w.Write([]byte("Client sent bad request."))
+		logger.Warning.Println("[gen] Could not serve page: ", r.Method, r.URL.RequestURI(), "Error:", err)
+		rb.SetResponseCode(400)
+		rb.WriteAndOveride([]byte("Client sent bad request."))
 		return
 	}
 
 	if r.Header.Get("Origin") != "" {
 		if r.Method == OPTIONS {
-			logger.Error.Println("CORS pre-flight OPTONS")
-			w.Header().Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Add("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Location")
+			rb.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+			rb.AddHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Location")
 			if _manager().allowOriginSet {
-				w.Header().Add("Access-Control-Allow-Origin", _manager().allowOrigin)
+				rb.AddHeader("Access-Control-Allow-Origin", _manager().allowOrigin)
 			}
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(""))
+			rb.SetResponseCode(http.StatusOK)
+			rb.WriteAndOveride([]byte(""))
 			return
 		}
 	}
@@ -298,33 +305,23 @@ func (this manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		doc := GetDocumentor("swagger")
 		swagDoc := doc.Document(basePath, this.serviceTypes, this.endpoints, this.securityDef)
 		data, _ := json.Marshal(swagDoc)
-		logger.SetResponseCode(http.StatusOK)
-		w.Header().Add("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
-		w.Header().Add("Access-Control-Allow-Origin", "*")
-		w.WriteHeader(http.StatusOK)
-		w.Write(data)
+		rb.SetResponseCode(http.StatusOK)
+		rb.AddHeader("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+		rb.AddHeader("Access-Control-Allow-Origin", "*")
+		rb.WriteAndOveride(data)
 		return
 	} 
 
 	if ep, args, queryArgs, _, found := getEndPointByUrl(r.Method, url_); found {
-		ctx := new(Context)
-		ctx.writer = w
-		ctx.request = r
-		ctx.xsrftoken = getAuthKey(ep.SecurityScheme, queryArgs, r, w)
-		ctx.sessData.relSessionData = make(map[string]interface{})
-		ctx.sessData.relSessionData["Host"] = r.Host
-		if _manager().allowOriginSet {
-			ctx.sessData.relSessionData["Origin"] = _manager().allowOrigin
-		}
+		rb.ctx.xsrftoken = getAuthKey(ep.SecurityScheme, queryArgs, r, w)
 
-		rb := prepareServe(ctx, ep, args, queryArgs)
+		prepareServe(rb, ep, args, queryArgs)
 
 		rb.WritePacket()
 	} else {
-		logger.Warning.Println("Could not serve page, path not found: ", r.Method, url_)
-		logger.SetResponseCode(http.StatusNotFound)
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("The resource in the requested path could not be found."))
+		logger.Warning.Println("[gen] Could not serve page, path not found: ", r.Method, url_)
+		rb.SetResponseCode(http.StatusNotFound)
+		rb.WriteAndOveride([]byte("The resource in the requested path could not be found."))
 	}
 }
 
@@ -371,8 +368,6 @@ func getAuthKey(schemes map[string][]string, queryArgs map[string]string, r *htt
 			if len(authKey) > 0 {
 				break
 			}
-		} else {
-			logger.Info.Println("scheme not found")
 		}
 	}
 
@@ -403,13 +398,11 @@ func (man *manager) addSecurityDefinition(name string, secDef SecurityStruct) {
 
 //Registeres the function to be used for handling all requests directed to gorest.
 func HandleFunc(w http.ResponseWriter, r *http.Request) {
-	logger.Info.Println("Serving URL : ", r.Method, r.URL.RequestURI())
+	logger.Info.Println("[gen] Serving URL : ", r.Method, r.URL.RequestURI())
 	defer func() {
 		if rec := recover(); rec != nil {
 			logger.Error.Println("Internal Server Error: Could not serve page: ", r.Method, r.RequestURI)
 			logger.Error.Println(rec)
-			logger.Error.Printf("%s", debug.Stack())
-			logger.SetResponseCode(http.StatusInternalServerError)
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 	}()

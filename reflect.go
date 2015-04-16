@@ -94,7 +94,7 @@ func registerService(root string, h interface{}) {
 			tags := reflect.StructTag(temp)
 			_manager().root = tags.Get("root")
 			if tag := tags.Get("swagger"); tag != "" {
-				logger.Info.Println("Registered swagger endpoint: ", tags.Get("root") + tag)
+				logger.Info.Println("[gen] Registered swagger endpoint: ", tags.Get("root") + tag)
 				_manager().swaggerEP = tags.Get("root") + tag
 			}
 			
@@ -151,17 +151,17 @@ func mapFieldsToMethods(t reflect.Type, f reflect.StructField, typeFullName stri
 
 	{ //Panic Checks
 		if !methFound {
-			logger.Error.Panicln("Method name not found. " + panicMethNotFound(methFound, ep, t, f, methodName))
+			logger.Error.Panicln("[fatal] Method name not found. " + panicMethNotFound(methFound, ep, t, f, methodName))
 		}
 		if !isLegalForRequestType(method.Type, ep) {
-			logger.Error.Panicln("Parameter list not matching. " + panicMethNotFound(methFound, ep, t, f, methodName))
+			logger.Error.Panicln("[fatal] Parameter list not matching. " + panicMethNotFound(methFound, ep, t, f, methodName))
 		}
 	}
 
 	ep.MethodNumberInParent = methodNumberInParent
 	_manager().addEndPoint(ep)
 
-	logger.Info.Println("Registerd service:", t.Name(), " endpoint:", ep.RequestMethod, ep.Signiture)
+	logger.Info.Println("[gen] Registerd service:", t.Name(), " endpoint:", ep.RequestMethod, ep.Signiture)
 }
 
 func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
@@ -182,7 +182,6 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
 	}
 
 	if (methType.NumIn() - startParam) != (ep.paramLen + len(ep.QueryParams)) {
-		logger.Error.Println("not cool 1")
 		return false
 	}
 
@@ -194,7 +193,6 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
 			if methVal.Kind() == reflect.Slice {
 				methVal = methVal.Elem()
 			} else {
-				logger.Error.Println("not cool 2")
 				return false
 			}
 		}
@@ -202,13 +200,11 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
 			if methVal.Kind() == reflect.Map {
 				methVal = methVal.Elem()
 			} else {
-				logger.Error.Println("not cool 3")
 				return false
 			}
 		}
 
 		if !typeNamesEqual(methVal, ep.PostdataType) {
-			logger.Error.Println("not cool 4")
 			return false
 		}
 	}
@@ -216,7 +212,6 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
 	i := startParam
 	if ep.isVariableLength {
 		if methType.NumIn() != startParam+1+len(ep.QueryParams) {
-			logger.Error.Println("not cool 5")
 			return false
 		}
 
@@ -228,7 +223,6 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
 	} else {
 		for ; i < methType.NumIn() && (i-startParam < ep.paramLen); i++ {
 			if !typeNamesEqual(methType.In(i), ep.Params[i-startParam].TypeName) {
-				logger.Error.Println("not cool 6.5")
 				return false
 			}
 		}
@@ -238,11 +232,9 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
 	for j := 0; i < methType.NumIn() && (j < len(ep.QueryParams)); i++ {
 		if ep.QueryParams[j].TypeName[:2] == "[]" {
 			if methType.In(i).Elem().String() != ep.QueryParams[j].TypeName[2:] {
-				logger.Error.Println("not cool 6.7", methType.In(i).Elem(), ep.QueryParams[j].TypeName)
 				return false
 			}
 		} else if !typeNamesEqual(methType.In(i), ep.QueryParams[j].TypeName) {
-			logger.Error.Println("not cool 7", methType.In(i), ep.QueryParams[j].TypeName)
 			return false
 		}
 		j++
@@ -255,7 +247,6 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
 			if methVal.Kind() == reflect.Slice {
 				methVal = methVal.Elem() //Only convert if it is mentioned as a slice in the tags, otherwise allow for failure panic
 			} else {
-				logger.Error.Println("not cool 8")
 				return false
 			}
 		}
@@ -263,13 +254,11 @@ func isLegalForRequestType(methType reflect.Type, ep EndPointStruct) bool {
 			if methVal.Kind() == reflect.Map {
 				methVal = methVal.Elem()
 			} else {
-				logger.Error.Println("not cool 9")
 				return false
 			}
 		}
 
 		if !typeNamesEqual(methVal, ep.OutputType) {
-			logger.Error.Println("not cool 10")
 			return false
 		}
 	}
@@ -283,7 +272,7 @@ func typeNamesEqual(methVal reflect.Type, name2 string) bool {
 	}
 	//fullName := strings.Replace(methVal.PkgPath(), "/", ".", -1) + "." + methVal.Name()
 	abbrevName := name2[strings.Index(name2, ".") + 1:]
-	logger.Error.Println("abbrev ", abbrevName, "name2 ", name2, "methval ", methVal.Name())
+
 	return abbrevName == methVal.Name()
 }
 
@@ -333,16 +322,14 @@ func panicMethNotFound(methFound bool, ep EndPointStruct, t reflect.Type, f refl
 //Runtime functions below:
 //-----------------------------------------------------------------------------------------------------------------
 
-func prepareServe(context *Context, ep EndPointStruct, args map[string]string, queryArgs map[string]string) (*ResponseBuilder) {
+func prepareServe(rb *ResponseBuilder, ep EndPointStruct, args map[string]string, queryArgs map[string]string) {
 	servMeta := _manager().getType(ep.parentTypeName)
 
 	t := reflect.TypeOf(servMeta.Template).Elem() //Get the type first, and it's pointer so Elem(), we created service with new (why??)
 	servVal := reflect.New(t).Elem() //Key to creating new instance of service, from the type above
 
 	//Set the Context; the user can get the context from her services function param
-	servVal.FieldByName("RestService").FieldByName("Context").Set(reflect.ValueOf(context))
-	rs := servVal.FieldByName("RestService").Interface().(RestService)
-	rb := rs.ResponseBuilder()
+	servVal.FieldByName("RestService").FieldByName("Context").Set(reflect.ValueOf(rb.ctx))
 
 	//Check Authorization
 
@@ -353,15 +340,15 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 			for i := range scopes {
 				alteredScopes[i] = replaceScopeKey(scopes[i], args)
 			}
-			authorized = GetAuthorizer(key)(context.xsrftoken, key, alteredScopes, context.request.Method, rb)
+			authorized = GetAuthorizer(key)(rb.ctx.xsrftoken, key, alteredScopes, rb.ctx.request.Method, rb)
 			if authorized {
 				break
 			}
 		}
 		if !authorized {
-			logger.Error.Println("Not authorized")
+			// authorizer should log failure reason
 			rb.SetResponseCode(401)
-			return rb
+			return
 		}
 	}
 
@@ -369,7 +356,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 
 	targetMethod := servVal.Type().Method(ep.MethodNumberInParent)
 
-	contentType := context.request.Header.Get("Content-Type")
+	contentType := rb.ctx.request.Header.Get("Content-Type")
 
 	if contentType == "" {
 		contentType = servMeta.ConsumesMime[0]
@@ -379,9 +366,10 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 	if !valid {
 		if len(ep.PostdataType) > 0 {
 			// error - can not accept request
+			logger.Error.Println("[gen] service is not configured to accept Content-Type " + contentType)
 			rb.SetResponseCode(http.StatusBadRequest)
 			rb.SetResponseMsg("Service is not configured to accept Content-Type " + contentType)
-			return rb
+			return
 		}
 	}
 
@@ -391,7 +379,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 		//Get postdata here
 		//TODO: Also check if this is a multipart post and handle as required.
 		buf := new(bytes.Buffer)
-		io.Copy(buf, context.request.Body)
+		io.Copy(buf, rb.ctx.request.Body)
 		body := buf.String()
 
 		//println("This is the body of the post:",body)
@@ -401,7 +389,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 		} else {
 			rb.SetResponseCode(http.StatusBadRequest)
 			rb.SetResponseMsg("Error unmarshalling data using " + mime)
-			return rb
+			return
 		}
 	}
 
@@ -421,7 +409,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 				} else {
 					rb.SetResponseCode(http.StatusBadRequest)
 					rb.SetResponseMsg("Error unmarshalling data using " + mime)
-					return rb
+					return
 				}
 			}
 			arrArgs = append(arrArgs, varSliceArgs)
@@ -439,7 +427,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 				} else {
 					rb.SetResponseCode(http.StatusBadRequest)
 					rb.SetResponseMsg("Error unmarshalling data using " + mime)
-					return rb
+					return
 				}
 				startIndex++
 			}
@@ -459,7 +447,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 			} else {
 				rb.SetResponseCode(http.StatusBadRequest)
 				rb.SetResponseMsg("Error unmarshalling data using " + mime)
-				return rb
+				return
 			}
 
 			startIndex++
@@ -476,7 +464,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 		if len(ret) == 1 { //This is when we have just called a GET
 			var mimeType	string
 
-			accept := context.request.Header.Get("Accept")
+			accept := rb.ctx.request.Header.Get("Accept")
 			valid := false
 
 			if len(accept) > 0 {
@@ -501,7 +489,7 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 			hidec := ret[0].Interface()
 			if dec != nil {
 				scope := make([]string, 0)
-				prefix := "http://" + context.request.Host
+				prefix := "http://" + rb.ctx.request.Host
 				item, found := rb.Session().Get("Scope")
 				if found {
 					iScope := item.([]interface{})
@@ -519,24 +507,24 @@ func prepareServe(context *Context, ep EndPointStruct, args map[string]string, q
 				rb.ctx.respPacket = bytarr
 				rb.AddHeader("Content-Type", mimeType)
 				//rb.SetResponseCode(http.StatusOK)
-				return rb
+				return
 			} else {
 				//This is an internal error with the registered marshaller not being able to marshal internal structs
 				rb.SetResponseCode(http.StatusInternalServerError)
 				rb.SetResponseMsg("Internal server error. Could not Marshal/UnMarshal data: " + err.Error())
-				return rb
+				return
 			}
 		} else {
 			//rb.SetResponseCode(http.StatusOK)
-			return rb
+			return
 		}
 	}
 
 	//Just in case the whole civilization crashes and it falls thru to here. This shall never happen though... well tested
-	logger.Error.Panicln("There was a problem with request handing. Probably a bug, please report.") //Add client data, and send support alert
+	logger.Error.Panicln("[gen] There was a problem with request handing. Probably a bug, please report.") //Add client data, and send support alert
 	rb.SetResponseCode(http.StatusInternalServerError)
 	rb.SetResponseMsg("GoRest: Internal server error.")
-	return rb 
+	return
 }
 
 func makeArg(data string, template reflect.Type, mime string) (reflect.Value, bool) {
@@ -561,7 +549,7 @@ func makeArg(data string, template reflect.Type, mime string) (reflect.Value, bo
 	err := bytesToInterface(buf, i, mime)
 
 	if err != nil {
-		logger.Error.Panicln("Error Unmarshalling data using " + mime + ". Incompatable data format in entity. (" + err.Error() + ")")
+		logger.Error.Println("[gen] Error Unmarshalling data using " + mime + ". Incompatable data format in entity. (" + err.Error() + ")")
 		return reflect.ValueOf(nil), false
 	}
 	

@@ -56,8 +56,8 @@ func GetAuthorizer(scheme string)(a Authorizer){
 
 //This is the default and exmaple authorizer that is used to authorize requests to endpints with a security scheme
 //It always allows access and returns nil for SessionData.  
-func DefaultAuthorizer(token string, scheme string, scopes []string, method string, rb *ResponseBuilder)(bool) {
-	logger.Warning.Println("Use of DefaultAuthorizer for scheme " + scheme)
+func DefaultAuthorizer(token string, scheme string, scopes []string, method string, rb *ResponseBuilder) bool {
+	logger.Warning.Println("[gen] Use of DefaultAuthorizer for scheme " + scheme)
 	return true
 }
 

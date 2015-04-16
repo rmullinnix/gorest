@@ -101,7 +101,7 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 	if root != "" {
 		md.Root = root + md.Root
 	}
-	logger.Info.Println("All EndPoints for service [", name, "] , registered under root path: ", md.Root)
+	logger.Info.Println("[gen] All EndPoints for service [", name, "] , registered under root path: ", md.Root)
 
 	md.ConsumesMime = make([]string, 0)
 	if tag = tags.Get("consumes"); tag == "" {
@@ -115,7 +115,7 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 	for i := 0; i < len(md.ConsumesMime); i++ {
 		mimeType := md.ConsumesMime[i]
 		if !addMimeType(mimeType) {
-			logger.Error.Fatalf(errorString_MarshalMimeType, mimeType)
+			logger.Error.Fatalf("[fatal]", errorString_MarshalMimeType, mimeType)
 		}
 	}
 
@@ -131,14 +131,14 @@ func prepServiceMetaData(root string, tags reflect.StructTag, i interface{}, nam
 	for i := 0; i < len(md.ProducesMime); i++ {
 		mimeType := md.ProducesMime[i]
 		if !addMimeType(mimeType) {
-			logger.Error.Fatalf(errorString_MarshalMimeType, mimeType)
+			logger.Error.Fatalf("[fatal]", errorString_MarshalMimeType, mimeType)
 		}
 	}
 
 	if tag := tags.Get("gzip"); tag != "" {
 		b, err := strconv.ParseBool(tag)
 		if err != nil {
-			logger.Warning.Printf(errorString_Gzip, name)
+			logger.Warning.Printf("[gen]", errorString_Gzip, name)
 			md.allowGzip = false
 		} else {
 			md.allowGzip = b
@@ -168,7 +168,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 	if tag := tags.Get("method"); tag != "" {
 		ok := false
 		if ms.RequestMethod, ok = methodMap[tag]; !ok {
-			logger.Error.Fatalf(errorString_UnknownMethod, tag)
+			logger.Error.Fatalf("[fatal]", errorString_UnknownMethod, tag)
 		}
 
 		if tag := tags.Get("path"); tag != "" {
@@ -176,7 +176,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 			ms.Signiture = serviceRoot + "/" + strings.Trim(tag, "/")
 			ms.encSigniture = encodeSigniture(ms.RequestMethod + ms.Signiture, true, false)
 		} else {
-			logger.Error.Fatalln(errorString_EndpointDecl)
+			logger.Error.Fatalln("[fatal]", errorString_EndpointDecl)
 		}
 
 		if tag := tags.Get("output"); tag != "" {
@@ -191,7 +191,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 					ms.OutputTypeIsMap = true
 					ms.OutputType = ms.OutputType[11:]
 				} else {
-					logger.Error.Fatalf(errorString_StringMap, "output", ms.Signiture)
+					logger.Error.Fatalf("[fatal]", errorString_StringMap, "output", ms.Signiture)
 				}
 
 			}
@@ -209,7 +209,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 					ms.postdataTypeIsMap = true
 					ms.PostdataType = ms.PostdataType[11:]
 				} else {
-					logger.Error.Fatalf(errorString_StringMap, "postdata", ms.Signiture)
+					logger.Error.Fatalf("[fatal]", errorString_StringMap, "postdata", ms.Signiture)
 				}
 
 			}
@@ -231,7 +231,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 		for i := 0; i < len(ms.ConsumesMime); i++ {
 			mimeType := ms.ConsumesMime[i]
 			if !addMimeType(mimeType) {
-				logger.Error.Fatalf(errorString_MarshalMimeType, mimeType)
+				logger.Error.Fatalf("[fatal]", errorString_MarshalMimeType, mimeType)
 			}
 		}
 
@@ -247,14 +247,14 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 		for i := 0; i < len(ms.ProducesMime); i++ {
 			mimeType := ms.ProducesMime[i]
 			if !addMimeType(mimeType) {
-				logger.Error.Fatalf(errorString_MarshalMimeType, mimeType)
+				logger.Error.Fatalf("[fatal]", errorString_MarshalMimeType, mimeType)
 			}
 		}
 
 		if tag := tags.Get("gzip"); tag != "" {
 			b, err := strconv.ParseBool(tag)
 			if err != nil {
-				logger.Warning.Printf(errorString_Gzip, ms.Name)
+				logger.Warning.Printf("[gen]", errorString_Gzip, ms.Name)
 				ms.allowGzip = 2
 			} else if b {
 				ms.allowGzip = 1
@@ -277,7 +277,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 			}
 
 			if GetAuthorizer(name) == nil {
-				logger.Error.Fatalf(errorString_Scheme, name)
+				logger.Error.Fatalf("[fatal]", errorString_Scheme, name)
 			}
 
 			if strings.Index(tag, "[") > -1 {
@@ -292,7 +292,7 @@ func makeEndPointStruct(tags reflect.StructTag, serviceRoot string) EndPointStru
 		return *ms
 	}
 
-	logger.Error.Fatalln(errorString_EndpointDecl)
+	logger.Error.Fatalln("[fatal]", errorString_EndpointDecl)
 	return *ms //Should not get here
 }
 
@@ -422,13 +422,13 @@ func parseParams(e *EndPointStruct) {
 
 				for _, par := range e.QueryParams {
 					if par.Name == parName {
-						logger.Error.Fatalln("Duplicate Query Parameter name(" + parName + ") in REST path: " + e.Signiture)
+						logger.Error.Fatalln("[fatal]", "Duplicate Query Parameter name(" + parName + ") in REST path: " + e.Signiture)
 					}
 				}
 				//e.QueryParams[len(e.QueryParams)] = Param{pos, parName, typeName}
 				e.QueryParams = append(e.QueryParams, Param{pos, parName, typeName})
 			} else {
-				logger.Error.Fatalln("Please check that your Query Parameters are configured correctly for endpoint: " + e.Signiture)
+				logger.Error.Fatalln("[fatal]", "Please check that your Query Parameters are configured correctly for endpoint: " + e.Signiture)
 			}
 		}
 	}
@@ -456,7 +456,7 @@ func parseParams(e *EndPointStruct) {
 			}
 			for _, par := range e.Params {
 				if par.Name == parName {
-					logger.Error.Fatalln("Duplicate Path Parameter name(" + parName + ") in REST path: " + e.Signiture)
+					logger.Error.Fatalln("[fatal]", "Duplicate Path Parameter name(" + parName + ") in REST path: " + e.Signiture)
 				}
 			}
 
@@ -471,18 +471,18 @@ func parseParams(e *EndPointStruct) {
 	e.root = strings.TrimRight(e.root, "/")
 
 	if e.isVariableLength && e.paramLen > 1 {
-		logger.Error.Fatalln("Variable length endpoints can only have one parameter declaration: " + pathPart)
+		logger.Error.Fatalln("[fatal]", "Variable length endpoints can only have one parameter declaration: " + pathPart)
 	}
 
 	for _, ep := range _manager().endpoints {
 		if ep.root == e.root && ep.signitureLen == e.signitureLen && reflect.DeepEqual(ep.nonParamPathPart, e.nonParamPathPart) && ep.RequestMethod == e.RequestMethod {
-			logger.Error.Fatalln("Can not register two endpoints with same request-method(" + ep.RequestMethod + ") and same signature: " + e.Signiture + " VS " + ep.Signiture)
+			logger.Error.Fatalln("[fatal]", "Can not register two endpoints with same request-method(" + ep.RequestMethod + ") and same signature: " + e.Signiture + " VS " + ep.Signiture)
 		}
 //		if encodeSigniture(ep.RequestMethod + "/" + pathPart, false, false) == key {
-//			logger.Error.Fatalln("Endpoint already registered: " + ep.RequestMethod + "/" + pathPart)
+//			logger.Error.Fatalln("[fatal]", "Endpoint already registered: " + ep.RequestMethod + "/" + pathPart)
 //		}
 		if e.isVariableLength && (strings.Index(ep.root+"/", e.root+"/") == 0 || strings.Index(e.root+"/", ep.root+"/") == 0) && ep.RequestMethod == e.RequestMethod {
-			logger.Error.Fatalln("Variable length endpoints can only be mounted on a unique root. Root already used: " + ep.root + " <> " + e.root)
+			logger.Error.Fatalln("[fatal]", "Variable length endpoints can only be mounted on a unique root. Root already used: " + ep.root + " <> " + e.root)
 		}
 	}
 }
@@ -492,13 +492,13 @@ func getVarTypePair(part string, sign string) (parName string, typeName string) 
 	temp := strings.Trim(part, "{}")
 	ind := 0
 	if ind = strings.Index(temp, ":"); ind == -1 {
-		logger.Error.Fatalln("Please ensure that parameter names(" + temp + ") have associated types in REST path: " + sign)
+		logger.Error.Fatalln("[fatal]", "Please ensure that parameter names(" + temp + ") have associated types in REST path: " + sign)
 	}
 	parName = temp[:ind]
 	typeName = temp[ind+1:]
 
 	if !isAllowedParamType(typeName) {
-		logger.Error.Fatalln("Type " + typeName + " is not allowed for Path/Query-parameters in REST path: " + sign)
+		logger.Error.Fatalln("[fatal]", "Type " + typeName + " is not allowed for Path/Query-parameters in REST path: " + sign)
 	}
 
 	return

@@ -30,6 +30,8 @@ import (
 	"github.com/rmullinnix/logger"
 	"io"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -151,7 +153,6 @@ func (this *ResponseBuilder) writer() http.ResponseWriter {
 //Set the http code to be sent with the response, to the client.
 func (this *ResponseBuilder) SetResponseCode(code int) *ResponseBuilder {
 	this.ctx.responseCode = code
-	logger.SetResponseCode(code)
 	return this
 }
 
@@ -183,6 +184,7 @@ type Context struct {
 	request        *http.Request
 	xsrftoken      string
 	sessData       SessionData
+	sessStart	time.Time
 
 	// Response
 	respPacket		io.ReadCloser
@@ -246,7 +248,6 @@ func (this *ResponseBuilder) WritePacket() *ResponseBuilder {
 
 //This will just write to the response without affecting the change done by a call to Overide().
 func (this *ResponseBuilder) Write(data []byte) *ResponseBuilder {
-	logger.Error.Println("rc", this.ctx.responseCode)
 	if this.ctx.responseCode == 0 {
 		this.SetResponseCode(getDefaultResponseCode(this.ctx.request.Method))
 	}
@@ -293,4 +294,19 @@ func (this *ResponseBuilder) AddHeader(key string, value string) *ResponseBuilde
 func (this *ResponseBuilder) DelHeader(key string) *ResponseBuilder {
 	this.writer().Header().Del(key)
 	return this
+}
+
+func (this *ResponseBuilder) PerfLog() {
+	r := this.ctx.request
+
+	url_, _ := url.QueryUnescape(r.URL.RequestURI())
+	elapsed := time.Since(this.ctx.sessStart)
+	host, _ := os.Hostname()
+
+	useruuid, found := this.Session().GetString("UserUUID")
+	if !found {
+		useruuid = "public"
+	}
+
+	logger.Info.Println("[perf] host: " + host + " remote: " + r.RemoteAddr + " useruuid: " + useruuid + " url: " + url_ + " method: " + r.Method + " dur:", int64(elapsed/time.Millisecond), "ms", " response: ", this.ctx.responseCode)
 }

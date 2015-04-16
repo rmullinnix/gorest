@@ -27,21 +27,25 @@ func Oauth2Jwt(token string, scheme string, scopes []string, method string, rb *
 	curScheme = ""
 
 	if err != nil {
-		logger.Error.Println("jwt error", err)
+		logger.Error.Println("[sec] oauth2-jwt userid: unknown useruuid: unknown active: true locked: false auth: false failcnt: 0 response: 401 reason: jwt parse error", err)
 		return false
 	}
 
+	uid := "unknown"
+	uuid := "unknown"
 	if user, ufnd := jwtToken.Claims["user"]; ufnd {
-		rb.Session().Set("UserId", user.(string))
+		uid = user.(string)
+		rb.Session().Set("UserId", uid)
 	}
 
 	if userUUID, uifnd := jwtToken.Claims["useruuid"]; uifnd {
-		rb.Session().Set("UserUUID", userUUID.(string))
+		uuid = userUUID.(string)
+		rb.Session().Set("UserUUID", uuid)
 	}
 
 	claim, found := jwtToken.Claims["scope"]
 	if !found {
-		logger.Error.Println("No scope claims in the token" )
+		logger.Error.Println("[sec] oauth2-jwt userid: " + uid + " useruuid: " + uuid + " active: true locked: false auth: false failcnt: 0 response: 401 reason: No scope claims in the token")
 		return false
 	}
 	
@@ -64,7 +68,6 @@ func Oauth2Jwt(token string, scheme string, scopes []string, method string, rb *
 			scopeName = scopes[i][:contextAuth]
 		}
 
-		logger.Info.Println("context:", contextKey)
 		for j := range arrClaim {
 			arrStr := arrClaim[j].(string)
 
@@ -80,7 +83,6 @@ func Oauth2Jwt(token string, scheme string, scopes []string, method string, rb *
 					}
 
 					for k := range keys {
-						logger.Info.Println("arrStr:", keys[k])
 						if keys[k] == contextKey {
 							authorized = true
 							break
@@ -103,6 +105,14 @@ func Oauth2Jwt(token string, scheme string, scopes []string, method string, rb *
 				}
 			}
 		}
+	}
+
+	if !authorized {
+		arr := make([]string, len(arrClaim))
+		for j := range arrClaim {
+			arr[j] = arrClaim[j].(string)
+		}
+		logger.Error.Println("[sec] oauth2-jwt userid: " + uid + " useruuid: " + uuid + " active: true locked: false auth: false failcnt: 0 response: 401 reason: user not authorized for scope " + strings.Join(arr, ", "))
 	}
 
 	return authorized
