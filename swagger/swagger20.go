@@ -638,8 +638,14 @@ func populateDefinitions(t reflect.Type) SchemaObject {
 	for k := 0; k < t.NumField(); k++ {
 		sMem := t.Field(k)
 		switch sMem.Type.Kind() {
-			case reflect.Slice, reflect.Array, reflect.Map:
+			case reflect.Slice, reflect.Array:
 				prop, required := populateDefinitionArray(sMem)
+				model.Properties[sMem.Name] = prop
+				if required {
+					model.Required = append(model.Required, sMem.Name)
+				}
+			case reflect.Map:
+				prop, required := populateDefinitionMap(sMem)
 				model.Properties[sMem.Name] = prop
 				if required {
 					model.Required = append(model.Required, sMem.Name)
@@ -733,6 +739,64 @@ func populateDefinitionArray(sf reflect.StructField) (SchemaObject, bool) {
 	}
 
 	prop.Items = &items
+
+	if et.Kind() == reflect.Struct {
+		if _, ok := spec20.Definitions[et.Name()]; !ok {
+			// set placeholder to prevent deal with recursive structures
+			var placeHolder         SchemaObject
+			_spec20().Definitions[et.Name()] = placeHolder
+			model := populateDefinitions(et)
+			_spec20().Definitions[et.Name()] = model
+		}
+	}
+
+        var tag         string
+
+        if tag = tags.Get("sw.format"); tag != "" {
+                prop.Format = tag
+        }
+
+        if tag = tags.Get("sw.description"); tag != "" {
+                prop.Description = tag
+        }
+
+	required := false
+        if tag = tags.Get("sw.required"); tag != "" {
+		if tag == "true" {
+                	required = true
+		}
+        }
+
+	return prop, required
+}
+
+func populateDefinitionMap(sf reflect.StructField) (SchemaObject, bool) {
+	var prop	SchemaObject
+
+	stmp := strings.Join(strings.Fields(string(sf.Tag)), " ")
+	tags := reflect.StructTag(stmp)
+	prop.Type = "object"
+
+	var aProps	SchemaObject
+
+	// remove the package if present
+	et := sf.Type.Elem()
+	parts := strings.Split(et.String(), ".")
+	name := ""
+	if len(parts) > 1 {
+		aProps.Type, _ = primitiveFormat(parts[1])
+		name = parts[1]
+	} else {
+		aProps.Type, _ = primitiveFormat(parts[0])
+		name = parts[0]
+	}
+
+	if et.Kind() == reflect.Struct {
+		aProps.Type = ""
+		aProps.Ref = "#/definitions/" + name
+	}
+
+	prop.AdditionalProps = &aProps
 
 	if et.Kind() == reflect.Struct {
 		if _, ok := spec20.Definitions[et.Name()]; !ok {
